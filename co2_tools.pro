@@ -1,4 +1,4 @@
-QT       += core gui serialport charts qml quick quickwidgets bluetooth
+QT       += core gui serialport bluetooth
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -11,7 +11,7 @@ TEMPLATE = app
 
 #Application version
 VERSION_MAJOR = 1
-VERSION_MINOR = 4
+VERSION_MINOR = 5
 VERSION_BUILD = 0
 DEFINES += "VERSION_MAJOR=$$VERSION_MAJOR"\
        "VERSION_MINOR=$$VERSION_MINOR"\
@@ -36,12 +36,14 @@ INCLUDEPATH +=.
 DEPENDPATH +=.
 
 SOURCES += \
+    ble_dialog.cpp \
     main.cpp \
     mainwindow.cpp \
     settingsdialog.cpp \
     widget.cpp
 
 HEADERS += \
+    ble_dialog.h \
     bnumber.h \
     defs.h \
     mainwindow.h \
@@ -51,6 +53,7 @@ HEADERS += \
     widget.h
 
 FORMS += \
+    ble_dialog.ui \
     mainwindow.ui \
     settingsdialog.ui \
     widget.ui

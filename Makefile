@@ -14,10 +14,10 @@ EQ            = =
 
 CC            = gcc
 CXX           = g++
-DEFINES       = -DVERSION_MAJOR=1 -DVERSION_MINOR=4 -DVERSION_BUILD=0 -DQT_DEPRECATED_WARNINGS -DQT_QML_DEBUG -DQT_CHARTS_LIB -DQT_QUICKWIDGETS_LIB -DQT_WIDGETS_LIB -DQT_QUICK_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_QML_LIB -DQT_NETWORK_LIB -DQT_BLUETOOTH_LIB -DQT_CORE_LIB
+DEFINES       = -DVERSION_MAJOR=1 -DVERSION_MINOR=5 -DVERSION_BUILD=0 -DQT_DEPRECATED_WARNINGS -DQT_QML_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_BLUETOOTH_LIB -DQT_CORE_LIB
 CFLAGS        = -pipe -g -Wall -W -D_REENTRANT -fPIC $(DEFINES)
 CXXFLAGS      = -pipe -g -std=gnu++11 -Wall -W -D_REENTRANT -fPIC $(DEFINES)
-INCPATH       = -I. -I. -I../../../Qt/5.12.9/gcc_64/include -I../../../Qt/5.12.9/gcc_64/include/QtCharts -I../../../Qt/5.12.9/gcc_64/include/QtQuickWidgets -I../../../Qt/5.12.9/gcc_64/include/QtWidgets -I../../../Qt/5.12.9/gcc_64/include/QtQuick -I../../../Qt/5.12.9/gcc_64/include/QtGui -I../../../Qt/5.12.9/gcc_64/include/QtSerialPort -I../../../Qt/5.12.9/gcc_64/include/QtQml -I../../../Qt/5.12.9/gcc_64/include/QtNetwork -I../../../Qt/5.12.9/gcc_64/include/QtBluetooth -I../../../Qt/5.12.9/gcc_64/include/QtCore -I. -isystem /usr/include/libdrm -I. -I../../../Qt/5.12.9/gcc_64/mkspecs/linux-g++
+INCPATH       = -I. -I. -I../../../Qt/5.12.9/gcc_64/include -I../../../Qt/5.12.9/gcc_64/include/QtWidgets -I../../../Qt/5.12.9/gcc_64/include/QtGui -I../../../Qt/5.12.9/gcc_64/include/QtSerialPort -I../../../Qt/5.12.9/gcc_64/include/QtBluetooth -I../../../Qt/5.12.9/gcc_64/include/QtCore -I. -isystem /usr/include/libdrm -I. -I../../../Qt/5.12.9/gcc_64/mkspecs/linux-g++
 QMAKE         = /home/alarm/Qt/5.12.9/gcc_64/bin/qmake
 DEL_FILE      = rm -f
 CHK_DIR_EXISTS= test -d
@@ -36,11 +36,11 @@ DEL_DIR       = rmdir
 MOVE          = mv -f
 TAR           = tar -cf
 COMPRESS      = gzip -9f
-DISTNAME      = CO2_Tools1.4.0
-DISTDIR = /home/alarm/Project/Qt/co2_tools/.tmp/CO2_Tools1.4.0
+DISTNAME      = CO2_Tools1.5.0
+DISTDIR = /home/alarm/Project/Qt/co2_tools/.tmp/CO2_Tools1.5.0
 LINK          = g++
 LFLAGS        = -Wl,-rpath,/home/alarm/Qt/5.12.9/gcc_64/lib -Wl,-rpath-link,/home/alarm/Qt/5.12.9/gcc_64/lib
-LIBS          = $(SUBLIBS) /home/alarm/Qt/5.12.9/gcc_64/lib/libQt5Charts.so /home/alarm/Qt/5.12.9/gcc_64/lib/libQt5QuickWidgets.so /home/alarm/Qt/5.12.9/gcc_64/lib/libQt5Widgets.so /home/alarm/Qt/5.12.9/gcc_64/lib/libQt5Quick.so /home/alarm/Qt/5.12.9/gcc_64/lib/libQt5Gui.so /home/alarm/Qt/5.12.9/gcc_64/lib/libQt5SerialPort.so /home/alarm/Qt/5.12.9/gcc_64/lib/libQt5Qml.so /home/alarm/Qt/5.12.9/gcc_64/lib/libQt5Network.so /home/alarm/Qt/5.12.9/gcc_64/lib/libQt5Bluetooth.so /home/alarm/Qt/5.12.9/gcc_64/lib/libQt5Core.so -lGL -lpthread   
+LIBS          = $(SUBLIBS) /home/alarm/Qt/5.12.9/gcc_64/lib/libQt5Widgets.so /home/alarm/Qt/5.12.9/gcc_64/lib/libQt5Gui.so /home/alarm/Qt/5.12.9/gcc_64/lib/libQt5SerialPort.so /home/alarm/Qt/5.12.9/gcc_64/lib/libQt5Bluetooth.so /home/alarm/Qt/5.12.9/gcc_64/lib/libQt5Core.so -lGL -lpthread   
 AR            = ar cqs
 RANLIB        = 
 SED           = sed
@@ -52,18 +52,22 @@ OBJECTS_DIR   = ./
 
 ####### Files
 
-SOURCES       = main.cpp \
+SOURCES       = ble_dialog.cpp \
+		main.cpp \
 		mainwindow.cpp \
 		settingsdialog.cpp \
 		widget.cpp qrc_icons.cpp \
+		moc_ble_dialog.cpp \
 		moc_mainwindow.cpp \
 		moc_settingsdialog.cpp \
 		moc_widget.cpp
-OBJECTS       = main.o \
+OBJECTS       = ble_dialog.o \
+		main.o \
 		mainwindow.o \
 		settingsdialog.o \
 		widget.o \
 		qrc_icons.o \
+		moc_ble_dialog.o \
 		moc_mainwindow.o \
 		moc_settingsdialog.o \
 		moc_widget.o
@@ -261,13 +265,15 @@ DIST          = ../../../Qt/5.12.9/gcc_64/mkspecs/features/spec_pre.prf \
 		../../../Qt/5.12.9/gcc_64/mkspecs/features/exceptions.prf \
 		../../../Qt/5.12.9/gcc_64/mkspecs/features/yacc.prf \
 		../../../Qt/5.12.9/gcc_64/mkspecs/features/lex.prf \
-		co2_tools.pro bnumber.h \
+		co2_tools.pro ble_dialog.h \
+		bnumber.h \
 		defs.h \
 		mainwindow.h \
 		settingsdialog.h \
 		ver.h \
 		version.h \
-		widget.h main.cpp \
+		widget.h ble_dialog.cpp \
+		main.cpp \
 		mainwindow.cpp \
 		settingsdialog.cpp \
 		widget.cpp
@@ -279,7 +285,7 @@ TARGET        = CO2_Tools
 first: all
 ####### Build rules
 
-CO2_Tools: ui_mainwindow.h ui_settingsdialog.h ui_widget.h $(OBJECTS)  
+CO2_Tools: ui_ble_dialog.h ui_mainwindow.h ui_settingsdialog.h ui_widget.h $(OBJECTS)  
 	$(LINK) $(LFLAGS) -o $(TARGET) $(OBJECTS) $(OBJCOMP) $(LIBS)
 
 Makefile: co2_tools.pro ../../../Qt/5.12.9/gcc_64/mkspecs/linux-g++/qmake.conf ../../../Qt/5.12.9/gcc_64/mkspecs/features/spec_pre.prf \
@@ -691,9 +697,9 @@ distdir: FORCE
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents icons.qrc $(DISTDIR)/
 	$(COPY_FILE) --parents ../../../Qt/5.12.9/gcc_64/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents bnumber.h defs.h mainwindow.h settingsdialog.h ver.h version.h widget.h $(DISTDIR)/
-	$(COPY_FILE) --parents main.cpp mainwindow.cpp settingsdialog.cpp widget.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents mainwindow.ui settingsdialog.ui widget.ui $(DISTDIR)/
+	$(COPY_FILE) --parents ble_dialog.h bnumber.h defs.h mainwindow.h settingsdialog.h ver.h version.h widget.h $(DISTDIR)/
+	$(COPY_FILE) --parents ble_dialog.cpp main.cpp mainwindow.cpp settingsdialog.cpp widget.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents ble_dialog.ui mainwindow.ui settingsdialog.ui widget.ui $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -777,9 +783,154 @@ compiler_moc_predefs_clean:
 moc_predefs.h: ../../../Qt/5.12.9/gcc_64/mkspecs/features/data/dummy.cpp
 	g++ -pipe -g -std=gnu++11 -Wall -W -dM -E -o moc_predefs.h ../../../Qt/5.12.9/gcc_64/mkspecs/features/data/dummy.cpp
 
-compiler_moc_header_make_all: moc_mainwindow.cpp moc_settingsdialog.cpp moc_widget.cpp
+compiler_moc_header_make_all: moc_ble_dialog.cpp moc_mainwindow.cpp moc_settingsdialog.cpp moc_widget.cpp
 compiler_moc_header_clean:
-	-$(DEL_FILE) moc_mainwindow.cpp moc_settingsdialog.cpp moc_widget.cpp
+	-$(DEL_FILE) moc_ble_dialog.cpp moc_mainwindow.cpp moc_settingsdialog.cpp moc_widget.cpp
+moc_ble_dialog.cpp: ble_dialog.h \
+		../../../Qt/5.12.9/gcc_64/include/QtWidgets/QDialog \
+		../../../Qt/5.12.9/gcc_64/include/QtWidgets/qdialog.h \
+		../../../Qt/5.12.9/gcc_64/include/QtWidgets/qtwidgetsglobal.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qtguiglobal.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qglobal.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qconfig-bootstrapped.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qconfig.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qtcore-config.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qsystemdetection.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qprocessordetection.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qcompilerdetection.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qtypeinfo.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qsysinfo.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qlogging.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qflags.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qatomic.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qbasicatomic.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qatomic_bootstrap.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qgenericatomic.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qatomic_cxx11.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qatomic_msvc.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qglobalstatic.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qmutex.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qnumeric.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qversiontagging.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qtgui-config.h \
+		../../../Qt/5.12.9/gcc_64/include/QtWidgets/qtwidgets-config.h \
+		../../../Qt/5.12.9/gcc_64/include/QtWidgets/qwidget.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qwindowdefs.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qobjectdefs.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qnamespace.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qobjectdefs_impl.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qwindowdefs_win.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qobject.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qstring.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qchar.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qbytearray.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qrefcount.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qarraydata.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qstringliteral.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qstringalgorithms.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qstringview.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qstringbuilder.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qlist.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qalgorithms.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qiterator.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qhashfunctions.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qpair.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qbytearraylist.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qstringlist.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qregexp.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qstringmatcher.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qcoreevent.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qscopedpointer.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qmetatype.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qvarlengtharray.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qcontainerfwd.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qobject_impl.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qmargins.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qpaintdevice.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qrect.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qsize.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qpoint.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qpalette.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qcolor.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qrgb.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qrgba64.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qbrush.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qvector.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qmatrix.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qpolygon.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qregion.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qdatastream.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qiodevice.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qline.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qtransform.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qpainterpath.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qimage.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qpixelformat.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qpixmap.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qsharedpointer.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qshareddata.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qhash.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qsharedpointer_impl.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qfont.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qfontmetrics.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qfontinfo.h \
+		../../../Qt/5.12.9/gcc_64/include/QtWidgets/qsizepolicy.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qcursor.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qkeysequence.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qevent.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qvariant.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qmap.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qdebug.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qtextstream.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qlocale.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qset.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qcontiguouscache.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qurl.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qurlquery.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qfile.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qfiledevice.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qvector2d.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qtouchdevice.h \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/QBluetoothLocalDevice \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qbluetoothlocaldevice.h \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qtbluetoothglobal.h \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qtbluetooth-config.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/QObject \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/QList \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/QString \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/QBluetoothHostInfo \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qbluetoothhostinfo.h \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/QBluetoothAddress \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qbluetoothaddress.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/QByteArray \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/QMetaType \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/QBluetoothServiceDiscoveryAgent \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qbluetoothservicediscoveryagent.h \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/QBluetoothServiceInfo \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qbluetoothserviceinfo.h \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/QBluetoothUuid \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qbluetoothuuid.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/QtGlobal \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/QUuid \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/quuid.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/QDebug \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/QSharedPointer \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/QVariant \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/QBluetoothDeviceDiscoveryAgent \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qbluetoothdevicediscoveryagent.h \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/QBluetoothDeviceInfo \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qbluetoothdeviceinfo.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qprocess.h \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/QBluetoothSocket \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qbluetoothsocket.h \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qbluetooth.h \
+		../../../Qt/5.12.9/gcc_64/include/QtNetwork/qabstractsocket.h \
+		../../../Qt/5.12.9/gcc_64/include/QtNetwork/qtnetworkglobal.h \
+		../../../Qt/5.12.9/gcc_64/include/QtNetwork/qtnetwork-config.h \
+		moc_predefs.h \
+		../../../Qt/5.12.9/gcc_64/bin/moc
+	/home/alarm/Qt/5.12.9/gcc_64/bin/moc $(DEFINES) --include /home/alarm/Project/Qt/co2_tools/moc_predefs.h -I/home/alarm/Qt/5.12.9/gcc_64/mkspecs/linux-g++ -I/home/alarm/Project/Qt/co2_tools -I/home/alarm/Project/Qt/co2_tools -I/home/alarm/Qt/5.12.9/gcc_64/include -I/home/alarm/Qt/5.12.9/gcc_64/include/QtWidgets -I/home/alarm/Qt/5.12.9/gcc_64/include/QtGui -I/home/alarm/Qt/5.12.9/gcc_64/include/QtSerialPort -I/home/alarm/Qt/5.12.9/gcc_64/include/QtBluetooth -I/home/alarm/Qt/5.12.9/gcc_64/include/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include ble_dialog.h -o moc_ble_dialog.cpp
+
 moc_mainwindow.cpp: mainwindow.h \
 		../../../Qt/5.12.9/gcc_64/include/QtWidgets/QSystemTrayIcon \
 		../../../Qt/5.12.9/gcc_64/include/QtWidgets/qsystemtrayicon.h \
@@ -964,9 +1115,10 @@ moc_mainwindow.cpp: mainwindow.h \
 		../../../Qt/5.12.9/gcc_64/include/QtNetwork/qabstractsocket.h \
 		../../../Qt/5.12.9/gcc_64/include/QtNetwork/qtnetworkglobal.h \
 		../../../Qt/5.12.9/gcc_64/include/QtNetwork/qtnetwork-config.h \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qbluetoothserver.h \
 		moc_predefs.h \
 		../../../Qt/5.12.9/gcc_64/bin/moc
-	/home/alarm/Qt/5.12.9/gcc_64/bin/moc $(DEFINES) --include /home/alarm/Project/Qt/co2_tools/moc_predefs.h -I/home/alarm/Qt/5.12.9/gcc_64/mkspecs/linux-g++ -I/home/alarm/Project/Qt/co2_tools -I/home/alarm/Project/Qt/co2_tools -I/home/alarm/Qt/5.12.9/gcc_64/include -I/home/alarm/Qt/5.12.9/gcc_64/include/QtCharts -I/home/alarm/Qt/5.12.9/gcc_64/include/QtQuickWidgets -I/home/alarm/Qt/5.12.9/gcc_64/include/QtWidgets -I/home/alarm/Qt/5.12.9/gcc_64/include/QtQuick -I/home/alarm/Qt/5.12.9/gcc_64/include/QtGui -I/home/alarm/Qt/5.12.9/gcc_64/include/QtSerialPort -I/home/alarm/Qt/5.12.9/gcc_64/include/QtQml -I/home/alarm/Qt/5.12.9/gcc_64/include/QtNetwork -I/home/alarm/Qt/5.12.9/gcc_64/include/QtBluetooth -I/home/alarm/Qt/5.12.9/gcc_64/include/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include mainwindow.h -o moc_mainwindow.cpp
+	/home/alarm/Qt/5.12.9/gcc_64/bin/moc $(DEFINES) --include /home/alarm/Project/Qt/co2_tools/moc_predefs.h -I/home/alarm/Qt/5.12.9/gcc_64/mkspecs/linux-g++ -I/home/alarm/Project/Qt/co2_tools -I/home/alarm/Project/Qt/co2_tools -I/home/alarm/Qt/5.12.9/gcc_64/include -I/home/alarm/Qt/5.12.9/gcc_64/include/QtWidgets -I/home/alarm/Qt/5.12.9/gcc_64/include/QtGui -I/home/alarm/Qt/5.12.9/gcc_64/include/QtSerialPort -I/home/alarm/Qt/5.12.9/gcc_64/include/QtBluetooth -I/home/alarm/Qt/5.12.9/gcc_64/include/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include mainwindow.h -o moc_mainwindow.cpp
 
 moc_settingsdialog.cpp: settingsdialog.h \
 		../../../Qt/5.12.9/gcc_64/include/QtWidgets/QDialog \
@@ -1078,7 +1230,7 @@ moc_settingsdialog.cpp: settingsdialog.h \
 		../../../Qt/5.12.9/gcc_64/include/QtSerialPort/qserialportglobal.h \
 		moc_predefs.h \
 		../../../Qt/5.12.9/gcc_64/bin/moc
-	/home/alarm/Qt/5.12.9/gcc_64/bin/moc $(DEFINES) --include /home/alarm/Project/Qt/co2_tools/moc_predefs.h -I/home/alarm/Qt/5.12.9/gcc_64/mkspecs/linux-g++ -I/home/alarm/Project/Qt/co2_tools -I/home/alarm/Project/Qt/co2_tools -I/home/alarm/Qt/5.12.9/gcc_64/include -I/home/alarm/Qt/5.12.9/gcc_64/include/QtCharts -I/home/alarm/Qt/5.12.9/gcc_64/include/QtQuickWidgets -I/home/alarm/Qt/5.12.9/gcc_64/include/QtWidgets -I/home/alarm/Qt/5.12.9/gcc_64/include/QtQuick -I/home/alarm/Qt/5.12.9/gcc_64/include/QtGui -I/home/alarm/Qt/5.12.9/gcc_64/include/QtSerialPort -I/home/alarm/Qt/5.12.9/gcc_64/include/QtQml -I/home/alarm/Qt/5.12.9/gcc_64/include/QtNetwork -I/home/alarm/Qt/5.12.9/gcc_64/include/QtBluetooth -I/home/alarm/Qt/5.12.9/gcc_64/include/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include settingsdialog.h -o moc_settingsdialog.cpp
+	/home/alarm/Qt/5.12.9/gcc_64/bin/moc $(DEFINES) --include /home/alarm/Project/Qt/co2_tools/moc_predefs.h -I/home/alarm/Qt/5.12.9/gcc_64/mkspecs/linux-g++ -I/home/alarm/Project/Qt/co2_tools -I/home/alarm/Project/Qt/co2_tools -I/home/alarm/Qt/5.12.9/gcc_64/include -I/home/alarm/Qt/5.12.9/gcc_64/include/QtWidgets -I/home/alarm/Qt/5.12.9/gcc_64/include/QtGui -I/home/alarm/Qt/5.12.9/gcc_64/include/QtSerialPort -I/home/alarm/Qt/5.12.9/gcc_64/include/QtBluetooth -I/home/alarm/Qt/5.12.9/gcc_64/include/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include settingsdialog.h -o moc_settingsdialog.cpp
 
 moc_widget.cpp: widget.h \
 		../../../Qt/5.12.9/gcc_64/include/QtWidgets/QWidget \
@@ -1198,15 +1350,19 @@ moc_widget.cpp: widget.h \
 		bnumber.h \
 		moc_predefs.h \
 		../../../Qt/5.12.9/gcc_64/bin/moc
-	/home/alarm/Qt/5.12.9/gcc_64/bin/moc $(DEFINES) --include /home/alarm/Project/Qt/co2_tools/moc_predefs.h -I/home/alarm/Qt/5.12.9/gcc_64/mkspecs/linux-g++ -I/home/alarm/Project/Qt/co2_tools -I/home/alarm/Project/Qt/co2_tools -I/home/alarm/Qt/5.12.9/gcc_64/include -I/home/alarm/Qt/5.12.9/gcc_64/include/QtCharts -I/home/alarm/Qt/5.12.9/gcc_64/include/QtQuickWidgets -I/home/alarm/Qt/5.12.9/gcc_64/include/QtWidgets -I/home/alarm/Qt/5.12.9/gcc_64/include/QtQuick -I/home/alarm/Qt/5.12.9/gcc_64/include/QtGui -I/home/alarm/Qt/5.12.9/gcc_64/include/QtSerialPort -I/home/alarm/Qt/5.12.9/gcc_64/include/QtQml -I/home/alarm/Qt/5.12.9/gcc_64/include/QtNetwork -I/home/alarm/Qt/5.12.9/gcc_64/include/QtBluetooth -I/home/alarm/Qt/5.12.9/gcc_64/include/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include widget.h -o moc_widget.cpp
+	/home/alarm/Qt/5.12.9/gcc_64/bin/moc $(DEFINES) --include /home/alarm/Project/Qt/co2_tools/moc_predefs.h -I/home/alarm/Qt/5.12.9/gcc_64/mkspecs/linux-g++ -I/home/alarm/Project/Qt/co2_tools -I/home/alarm/Project/Qt/co2_tools -I/home/alarm/Qt/5.12.9/gcc_64/include -I/home/alarm/Qt/5.12.9/gcc_64/include/QtWidgets -I/home/alarm/Qt/5.12.9/gcc_64/include/QtGui -I/home/alarm/Qt/5.12.9/gcc_64/include/QtSerialPort -I/home/alarm/Qt/5.12.9/gcc_64/include/QtBluetooth -I/home/alarm/Qt/5.12.9/gcc_64/include/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include widget.h -o moc_widget.cpp
 
 compiler_moc_objc_header_make_all:
 compiler_moc_objc_header_clean:
 compiler_moc_source_make_all:
 compiler_moc_source_clean:
-compiler_uic_make_all: ui_mainwindow.h ui_settingsdialog.h ui_widget.h
+compiler_uic_make_all: ui_ble_dialog.h ui_mainwindow.h ui_settingsdialog.h ui_widget.h
 compiler_uic_clean:
-	-$(DEL_FILE) ui_mainwindow.h ui_settingsdialog.h ui_widget.h
+	-$(DEL_FILE) ui_ble_dialog.h ui_mainwindow.h ui_settingsdialog.h ui_widget.h
+ui_ble_dialog.h: ble_dialog.ui \
+		../../../Qt/5.12.9/gcc_64/bin/uic
+	/home/alarm/Qt/5.12.9/gcc_64/bin/uic ble_dialog.ui -o ui_ble_dialog.h
+
 ui_mainwindow.h: mainwindow.ui \
 		../../../Qt/5.12.9/gcc_64/bin/uic
 	/home/alarm/Qt/5.12.9/gcc_64/bin/uic mainwindow.ui -o ui_mainwindow.h
@@ -1228,6 +1384,156 @@ compiler_lex_clean:
 compiler_clean: compiler_rcc_clean compiler_moc_predefs_clean compiler_moc_header_clean compiler_uic_clean 
 
 ####### Compile
+
+ble_dialog.o: ble_dialog.cpp defs.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/QString \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qstring.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qchar.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qglobal.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qconfig-bootstrapped.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qconfig.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qtcore-config.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qsystemdetection.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qprocessordetection.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qcompilerdetection.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qtypeinfo.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qsysinfo.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qlogging.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qflags.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qatomic.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qbasicatomic.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qatomic_bootstrap.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qgenericatomic.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qatomic_cxx11.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qatomic_msvc.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qglobalstatic.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qmutex.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qnumeric.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qversiontagging.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qbytearray.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qrefcount.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qnamespace.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qarraydata.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qstringliteral.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qstringalgorithms.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qstringview.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qstringbuilder.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/QDateTime \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qdatetime.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qshareddata.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qhash.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qiterator.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qlist.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qalgorithms.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qhashfunctions.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qpair.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qbytearraylist.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qstringlist.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qregexp.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qstringmatcher.h \
+		version.h \
+		bnumber.h \
+		ble_dialog.h \
+		../../../Qt/5.12.9/gcc_64/include/QtWidgets/QDialog \
+		../../../Qt/5.12.9/gcc_64/include/QtWidgets/qdialog.h \
+		../../../Qt/5.12.9/gcc_64/include/QtWidgets/qtwidgetsglobal.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qtguiglobal.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qtgui-config.h \
+		../../../Qt/5.12.9/gcc_64/include/QtWidgets/qtwidgets-config.h \
+		../../../Qt/5.12.9/gcc_64/include/QtWidgets/qwidget.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qwindowdefs.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qobjectdefs.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qobjectdefs_impl.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qwindowdefs_win.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qobject.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qcoreevent.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qscopedpointer.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qmetatype.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qvarlengtharray.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qcontainerfwd.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qobject_impl.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qmargins.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qpaintdevice.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qrect.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qsize.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qpoint.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qpalette.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qcolor.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qrgb.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qrgba64.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qbrush.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qvector.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qmatrix.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qpolygon.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qregion.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qdatastream.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qiodevice.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qline.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qtransform.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qpainterpath.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qimage.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qpixelformat.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qpixmap.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qsharedpointer.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qsharedpointer_impl.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qfont.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qfontmetrics.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qfontinfo.h \
+		../../../Qt/5.12.9/gcc_64/include/QtWidgets/qsizepolicy.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qcursor.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qkeysequence.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qevent.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qvariant.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qmap.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qdebug.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qtextstream.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qlocale.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qset.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qcontiguouscache.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qurl.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qurlquery.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qfile.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qfiledevice.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qvector2d.h \
+		../../../Qt/5.12.9/gcc_64/include/QtGui/qtouchdevice.h \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/QBluetoothLocalDevice \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qbluetoothlocaldevice.h \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qtbluetoothglobal.h \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qtbluetooth-config.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/QObject \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/QList \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/QBluetoothHostInfo \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qbluetoothhostinfo.h \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/QBluetoothAddress \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qbluetoothaddress.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/QByteArray \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/QMetaType \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/QBluetoothServiceDiscoveryAgent \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qbluetoothservicediscoveryagent.h \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/QBluetoothServiceInfo \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qbluetoothserviceinfo.h \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/QBluetoothUuid \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qbluetoothuuid.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/QtGlobal \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/QUuid \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/quuid.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/QDebug \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/QSharedPointer \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/QVariant \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/QBluetoothDeviceDiscoveryAgent \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qbluetoothdevicediscoveryagent.h \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/QBluetoothDeviceInfo \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qbluetoothdeviceinfo.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qprocess.h \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/QBluetoothSocket \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qbluetoothsocket.h \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qbluetooth.h \
+		../../../Qt/5.12.9/gcc_64/include/QtNetwork/qabstractsocket.h \
+		../../../Qt/5.12.9/gcc_64/include/QtNetwork/qtnetworkglobal.h \
+		../../../Qt/5.12.9/gcc_64/include/QtNetwork/qtnetwork-config.h \
+		ui_ble_dialog.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/QStringList
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o ble_dialog.o ble_dialog.cpp
 
 main.o: main.cpp mainwindow.h \
 		../../../Qt/5.12.9/gcc_64/include/QtWidgets/QSystemTrayIcon \
@@ -1413,6 +1719,7 @@ main.o: main.cpp mainwindow.h \
 		../../../Qt/5.12.9/gcc_64/include/QtNetwork/qabstractsocket.h \
 		../../../Qt/5.12.9/gcc_64/include/QtNetwork/qtnetworkglobal.h \
 		../../../Qt/5.12.9/gcc_64/include/QtNetwork/qtnetwork-config.h \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qbluetoothserver.h \
 		../../../Qt/5.12.9/gcc_64/include/QtCore/QLockFile \
 		../../../Qt/5.12.9/gcc_64/include/QtCore/qlockfile.h \
 		../../../Qt/5.12.9/gcc_64/include/QtCore/QDir \
@@ -1543,6 +1850,42 @@ mainwindow.o: mainwindow.cpp ui_mainwindow.h \
 		../../../Qt/5.12.9/gcc_64/include/QtCore/qdatetime.h \
 		version.h \
 		bnumber.h \
+		ble_dialog.h \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/QBluetoothLocalDevice \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qbluetoothlocaldevice.h \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qtbluetoothglobal.h \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qtbluetooth-config.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/QObject \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/QList \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/QBluetoothHostInfo \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qbluetoothhostinfo.h \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/QBluetoothAddress \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qbluetoothaddress.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/QByteArray \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/QMetaType \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/QBluetoothServiceDiscoveryAgent \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qbluetoothservicediscoveryagent.h \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/QBluetoothServiceInfo \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qbluetoothserviceinfo.h \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/QBluetoothUuid \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qbluetoothuuid.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/QtGlobal \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/QUuid \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/quuid.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/QDebug \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/QSharedPointer \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/QVariant \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/QBluetoothDeviceDiscoveryAgent \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qbluetoothdevicediscoveryagent.h \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/QBluetoothDeviceInfo \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qbluetoothdeviceinfo.h \
+		../../../Qt/5.12.9/gcc_64/include/QtCore/qprocess.h \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/QBluetoothSocket \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qbluetoothsocket.h \
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qbluetooth.h \
+		../../../Qt/5.12.9/gcc_64/include/QtNetwork/qabstractsocket.h \
+		../../../Qt/5.12.9/gcc_64/include/QtNetwork/qtnetworkglobal.h \
+		../../../Qt/5.12.9/gcc_64/include/QtNetwork/qtnetwork-config.h \
 		mainwindow.h \
 		../../../Qt/5.12.9/gcc_64/include/QtWidgets/QSystemTrayIcon \
 		../../../Qt/5.12.9/gcc_64/include/QtWidgets/qsystemtrayicon.h \
@@ -1560,11 +1903,9 @@ mainwindow.o: mainwindow.cpp ui_mainwindow.h \
 		../../../Qt/5.12.9/gcc_64/include/QtWidgets/QPushButton \
 		../../../Qt/5.12.9/gcc_64/include/QtWidgets/qpushbutton.h \
 		../../../Qt/5.12.9/gcc_64/include/QtWidgets/qabstractbutton.h \
-		../../../Qt/5.12.9/gcc_64/include/QtCore/QByteArray \
 		../../../Qt/5.12.9/gcc_64/include/QtCore/QFile \
 		../../../Qt/5.12.9/gcc_64/include/QtSerialPort/QSerialPortInfo \
 		../../../Qt/5.12.9/gcc_64/include/QtSerialPort/qserialportinfo.h \
-		../../../Qt/5.12.9/gcc_64/include/QtCore/QDebug \
 		../../../Qt/5.12.9/gcc_64/include/QtWidgets/QMessageBox \
 		../../../Qt/5.12.9/gcc_64/include/QtWidgets/qmessagebox.h \
 		../../../Qt/5.12.9/gcc_64/include/QtGui/QPixmap \
@@ -1578,39 +1919,7 @@ mainwindow.o: mainwindow.cpp ui_mainwindow.h \
 		../../../Qt/5.12.9/gcc_64/include/QtCore/qdir.h \
 		../../../Qt/5.12.9/gcc_64/include/QtCore/qfileinfo.h \
 		../../../Qt/5.12.9/gcc_64/include/QtCore/QIODevice \
-		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/QBluetoothLocalDevice \
-		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qbluetoothlocaldevice.h \
-		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qtbluetoothglobal.h \
-		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qtbluetooth-config.h \
-		../../../Qt/5.12.9/gcc_64/include/QtCore/QObject \
-		../../../Qt/5.12.9/gcc_64/include/QtCore/QList \
-		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/QBluetoothHostInfo \
-		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qbluetoothhostinfo.h \
-		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/QBluetoothAddress \
-		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qbluetoothaddress.h \
-		../../../Qt/5.12.9/gcc_64/include/QtCore/QMetaType \
-		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/QBluetoothServiceDiscoveryAgent \
-		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qbluetoothservicediscoveryagent.h \
-		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/QBluetoothServiceInfo \
-		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qbluetoothserviceinfo.h \
-		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/QBluetoothUuid \
-		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qbluetoothuuid.h \
-		../../../Qt/5.12.9/gcc_64/include/QtCore/QtGlobal \
-		../../../Qt/5.12.9/gcc_64/include/QtCore/QUuid \
-		../../../Qt/5.12.9/gcc_64/include/QtCore/quuid.h \
-		../../../Qt/5.12.9/gcc_64/include/QtCore/QSharedPointer \
-		../../../Qt/5.12.9/gcc_64/include/QtCore/QVariant \
-		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/QBluetoothDeviceDiscoveryAgent \
-		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qbluetoothdevicediscoveryagent.h \
-		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/QBluetoothDeviceInfo \
-		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qbluetoothdeviceinfo.h \
-		../../../Qt/5.12.9/gcc_64/include/QtCore/qprocess.h \
-		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/QBluetoothSocket \
-		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qbluetoothsocket.h \
-		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qbluetooth.h \
-		../../../Qt/5.12.9/gcc_64/include/QtNetwork/qabstractsocket.h \
-		../../../Qt/5.12.9/gcc_64/include/QtNetwork/qtnetworkglobal.h \
-		../../../Qt/5.12.9/gcc_64/include/QtNetwork/qtnetwork-config.h
+		../../../Qt/5.12.9/gcc_64/include/QtBluetooth/qbluetoothserver.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mainwindow.o mainwindow.cpp
 
 settingsdialog.o: settingsdialog.cpp settingsdialog.h \
@@ -1857,6 +2166,9 @@ widget.o: widget.cpp widget.h \
 
 qrc_icons.o: qrc_icons.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o qrc_icons.o qrc_icons.cpp
+
+moc_ble_dialog.o: moc_ble_dialog.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_ble_dialog.o moc_ble_dialog.cpp
 
 moc_mainwindow.o: moc_mainwindow.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_mainwindow.o moc_mainwindow.cpp

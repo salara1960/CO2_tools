@@ -1,6 +1,7 @@
 #include "ui_mainwindow.h"
 #include "settingsdialog.h"
 #include "widget.h"
+#include "ble_dialog.h"
 #include "mainwindow.h"
 //******************************************************************************************************
 
@@ -19,6 +20,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     this->setStyleSheet(tTip);
     ui->log->setReadOnly(true);
 
+
     first  = true;
     con = false;
     sdevName = "";
@@ -28,6 +30,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     rxData.clear();
     fileName.clear();
     chap.clear();
+    tmr_rst = 0;
 
     graf = new Widget(ui->graf);
 
@@ -44,15 +47,15 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     connect(this, SIGNAL(sigWrite(QByteArray &)), this, SLOT(slotWrite(QByteArray &)));
 
-    connect(ui->actionVERSION,    &QAction::triggered,        this, &MainWindow::About);
-    connect(ui->actionCONNECT,    &QAction::triggered,        this, &MainWindow::on_connect);
-    connect(ui->actionDISCONNECT, &QAction::triggered,        this, &MainWindow::on_disconnect);
-    connect(ui->actionCLEAR,      &QAction::triggered,        this, &MainWindow::clrLog);
-    connect(this,                 &MainWindow::sig_grafic,    this, &MainWindow::grafic);
-    connect(this,                 &MainWindow::sigConn,       this, &MainWindow::on_connect);
-    connect(this,                 &MainWindow::sigDisc,       this, &MainWindow::on_disconnect);
-    connect(this,                 &MainWindow::sig_on_answer, this, &MainWindow::on_answer);
-
+    connect(ui->actionVERSION,    &QAction::triggered,         this, &MainWindow::About);
+    connect(ui->actionCONNECT,    &QAction::triggered,         this, &MainWindow::on_connect);
+    connect(ui->actionDISCONNECT, &QAction::triggered,         this, &MainWindow::on_disconnect);
+    connect(ui->actionCLEAR,      &QAction::triggered,         this, &MainWindow::clrLog);
+    connect(this,                 &MainWindow::sig_grafic,     this, &MainWindow::grafic);
+    connect(this,                 &MainWindow::sigConn,        this, &MainWindow::on_connect);
+    connect(this,                 &MainWindow::sigDisc,        this, &MainWindow::on_disconnect);
+    connect(this,                 &MainWindow::sig_on_answer,  this, &MainWindow::on_answer);
+    connect(this,                 &MainWindow::sig_rst_screen, this, &MainWindow::rst_screen);
 
     ui->actionCONNECT->setEnabled(true);
     ui->actionPORT->setEnabled(true);
@@ -91,16 +94,17 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     connect(ui->actionPORT,       &QAction::triggered,     conf, &SettingsDialog::sig_confShow);
 #ifdef SET_BLUETOOTH
-    connect(ui->actionBLE, &QAction::triggered, this, &MainWindow::beginBle);
-    connect(this, &MainWindow::sig_bleTimeOut, this, &MainWindow::slot_bleTimeOut);
-    connect(this, &MainWindow::sig_bleDone, this, &MainWindow::slot_bleDone);
-    connect(this, &MainWindow::sig_bleGo, this, &MainWindow::bleGo);
+    connect(ui->actionBLE, &QAction::triggered,         this, &MainWindow::beginBle);
+    connect(this,          &MainWindow::sig_bleTimeOut, this, &MainWindow::slot_bleTimeOut);
+    connect(this,          &MainWindow::sig_bleDone,    this, &MainWindow::slot_bleDone);
+    connect(this,          &MainWindow::sig_bleGo,      this, &MainWindow::bleGo);
     ui->actionBLE->setVisible(true);
     ui->actionBLE->setEnabled(true);
 #else
     ui->actionBLE->setVisible(false);
 #endif
 
+    ui->log->setTextColor(Qt::blue);
 
 }
 //----------------------------------------------------------------------------------------
@@ -150,6 +154,9 @@ void MainWindow::timerEvent(QTimerEvent *event)
         emit sig_bleTimeOut();
     }
 #endif
+    else if (tmr_rst == event->timerId()) {
+        emit sig_rst_screen();
+    }
 
 }
 //-------------------------------------------------------------------------------------
@@ -160,6 +167,10 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     if (event->key() == Qt::Key_Return) emit sig_on_answer();
 }
 //--------------------------------------------------------------------------------
+QString MainWindow::time2str()
+{
+    return (QDateTime::currentDateTime().toString("dd.MM hh:mm:ss") + " | ");
+}
 //--------------------------------------------------------------------------------
 //         Error class
 //
@@ -216,10 +227,10 @@ void MainWindow::toStatusLine(QString st, int pic)
     ui->status->setText(st);
 }
 //-----------------------------------------------------------------------
-void MainWindow::LogSave(const QString & st)
+void MainWindow::LogSave(const QString & st, Qt::GlobalColor cvet)
 {
     if (st.length()) {
-        //ui->log->styleSheet();
+        ui->log->setTextColor(cvet);
         ui->log->append(st);
     }
 }
@@ -276,7 +287,6 @@ void MainWindow::deinitSerial()
 //
 void MainWindow::About()
 {
-
     QString st = QString(tr("\nСервисная программа для устройства\n'CO2_sensor' - STM32F411 + MQ135 + SI7021 + GC9A01"));
 
     st.append("\nВерсия " + qApp->applicationVersion() + tr(" ") + BUILD);
@@ -288,7 +298,6 @@ void MainWindow::About()
     box.setWindowTitle(tr("О программе"));
 
     box.exec();
-
 }
 //-----------------------------------------------------------------------
 //   Обработчик события - "подключиться к последовательному порту"
@@ -367,6 +376,18 @@ void MainWindow::on_disconnect()
 
 }
 //-----------------------------------------------------------------------
+void MainWindow::rst_screen()
+{
+    killTimer(tmr_rst);
+    tmr_rst = 0;
+
+    devTime = 0;
+    memset((uint8_t *)&one, 0, sizeof(data_t));
+    if (graf) {
+        emit graf->sig_refresh((void *)&one, msg_rst);
+    }
+}
+//-----------------------------------------------------------------------
 //   Метод-слот осуществляет выдачу стоки данных на устройство
 //    через последовательный интерфейс
 //
@@ -377,11 +398,13 @@ void MainWindow::slotWrite(QByteArray & mas)
     if (sdev) {
         QString m(mas);
         if (m.indexOf("restart") != -1) {
-            devTime = 0;
-            memset((uint8_t *)&one, 0, sizeof(data_t));
-            if (graf) {
-                emit graf->sig_refresh((void *)&one, msg_rst);
+
+            tmr_rst = startTimer(3500);// 4 sec.
+            if (tmr_rst <= 0) {
+                MyError |= 2;//start_timer error
+                throw TheError(MyError);
             }
+
         }
         if (con) sdev->write(m.toLocal8Bit());
     }
@@ -419,7 +442,8 @@ const char *uk = in;
 
     while (i < len) {
         out->append( static_cast<char>(myhextobin(uk)) );
-        i++; uk += 2;
+        i++;
+        uk += 2;
     }
 }
 //-----------------------------------------------------------------------
@@ -571,9 +595,7 @@ int ix = -1;
                 jsMode = false;
             }
             mkDataFromStr(line);
-            ui->log->setTextColor(Qt::blue);
-            LogSave(line);
-            ui->log->setTextColor(Qt::black);
+            LogSave(line, Qt::black);
             if (rxData.length() >= (ix + 1)) rxData.remove(0, ix);
                                         else rxData.clear();
             break;
@@ -630,17 +652,13 @@ void MainWindow::grafic(int cd)
 
 void MainWindow::beginBle()
 {
-
     ui->actionBLE->setChecked(true);
     ui->log->setEnabled(true);
-    ui->actionCLEAR->setEnabled(true);
 
-    /**/
-    if (bleFind) {
-        emit sig_bleGo();
-        return;
-    }
-    /**/
+
+    list.clear();
+    index = -1;
+    bleWin = nullptr;
 
     bleFind = false;
     bleDevStr.clear();
@@ -648,7 +666,6 @@ void MainWindow::beginBle()
     bleDevNameAddr.clear();
     //
 
-    //
     if (localDevice) {
         delete localDevice;
         localDevice = nullptr;
@@ -656,12 +673,10 @@ void MainWindow::beginBle()
     localDevice = new QBluetoothLocalDevice(this);
     if (localDevice->isValid()) {
         localDevice->powerOn();
-        localDevice->setHostMode(QBluetoothLocalDevice::HostDiscoverable);
-        //localDevice->setHostMode(QBluetoothLocalDevice::HostConnectable);
-        LogSave("\nLocal bluetooth device: " + localDevice->name() +
-                " (" + localDevice->address().toString().trimmed() + ")");
-        //
-        //
+        //localDevice->setHostMode(QBluetoothLocalDevice::HostDiscoverable);
+        localDevice->setHostMode(QBluetoothLocalDevice::HostConnectable);
+        LogSave("\n" + time2str() + "Local bluetooth device: " + localDevice->name() +
+                " (" + localDevice->address().toString().trimmed() + ")", Qt::blue);
         //
         if (discoveryAgent) {
             discoveryAgent->disconnect();
@@ -670,10 +685,10 @@ void MainWindow::beginBle()
         }
         discoveryAgent = new QBluetoothDeviceDiscoveryAgent(this);
         if (discoveryAgent) {
-            LogSave("Start discovery bluetooth devices...");
-            connect(discoveryAgent, &QBluetoothDeviceDiscoveryAgent::finished, this, &MainWindow::bleDiscoverFinished);
-            connect(discoveryAgent, &QBluetoothDeviceDiscoveryAgent::canceled, this, &MainWindow::bleDiscoverFinished);
-            connect(discoveryAgent, &QBluetoothDeviceDiscoveryAgent::deviceDiscovered, this, &MainWindow::bleAddDevice);
+            LogSave(time2str() + "Start discovery bluetooth devices...", Qt::blue);
+            connect(discoveryAgent, &QBluetoothDeviceDiscoveryAgent::finished,         this, &MainWindow::bleDiscoverFinished);
+            connect(discoveryAgent, &QBluetoothDeviceDiscoveryAgent::canceled,         this, &MainWindow::bleDiscoverFinished);
+            //connect(discoveryAgent, &QBluetoothDeviceDiscoveryAgent::deviceDiscovered, this, &MainWindow::bleAddDevice);
 #ifdef SET_BLE_DEVICE
             discoveryAgent->setLowEnergyDiscoveryTimeout(tmr_ble_wait);
             connect(discoveryAgent,
@@ -684,8 +699,8 @@ void MainWindow::beginBle()
 #else
             discoveryAgent->start();
 #endif
-        } else LogSave("Error create QBluetoothDeviceDiscoveryAgent !");
-    } else LogSave("Bluetooth is not available on this device");
+        } else LogSave(time2str() + "Error create QBluetoothDeviceDiscoveryAgent !", Qt::blue);
+    } else LogSave(time2str() + "Bluetooth is not available on this device", Qt::blue);
 
 }
 //-----------------------------------------------------------------------
@@ -704,14 +719,17 @@ void MainWindow::bleAddDevice(const QBluetoothDeviceInfo & param)
                 infoDev = param;
                 bleDevStr = infoDev.name().trimmed();
                 bleAddrStr = infoDev.address().toString().trimmed();
-                bleDevNameAddr = bleDevStr + "(" + bleAddrStr + ")";
+                bleDevNameAddr = bleDevStr +
+                        " (" + bleAddrStr +
+                        ") rssi: " + QString::number(infoDev.rssi(), 10);
                 bleFind = true;
             }
             toStatusLine(st, picInfo);
-            LogSave(st);
+            LogSave(time2str() + st, Qt::blue);
         }
 
         if (bleFind) emit sig_bleGo();
+
     }
 }
 //-----------------------------------------------------------------------
@@ -724,33 +742,33 @@ void MainWindow::bleScanError(QBluetoothDeviceDiscoveryAgent::Error er)
 //-----------------------------------------------------------------------
 void MainWindow::bleDiscoverFinished()
 {
-    if (!bleFind) {
-        QString st = "Device discover finished\n";
-        LogSave(st);
-        st.clear();
-        QList<QBluetoothDeviceInfo>list = discoveryAgent->discoveredDevices();
-        if (!list.isEmpty()) {
-            for (int i = 0; i < list.size(); i++) {
-                if (list.at(i).name().indexOf(bleRemoteMarker) != -1) {
-                    if (list.at(i).address().toString() == bleRemoteMac) {
-                        discoveryAgent->disconnect();
-                        discoveryAgent->stop();
-                        infoDev = list.at(i);
-                        bleDevStr = infoDev.name().trimmed();
-                        bleAddrStr = infoDev.address().toString().trimmed();
-                        bleDevNameAddr = bleDevStr + "(" + bleAddrStr + ")";
-                        bleFind = true;
-                        break;
-                    }
-                    st.append("Device: " + list.at(i).name().trimmed() + " (" + list.at(i).address().toString().trimmed() + ")\n");
-                }
-            }
-        } else st = "No devices found";
-
-        LogSave(st);
+    QString st = "Device discover finished";
+    LogSave(time2str() + st, Qt::blue);
+    //
+    //QList<QBluetoothDeviceInfo>ls;
+    //ls.clear();
+    list.clear();
+    list = discoveryAgent->discoveredDevices();
+    discoveryAgent->disconnect();
+    discoveryAgent->stop();
+    if (!list.isEmpty()) {
+        for (int i = 0; i < list.size(); i++) {
+            //if (list.at(i).name().indexOf(bleRemoteMarker) != -1) {
+                st = "Device: " + list.at(i).name().trimmed() +
+                     " (" + list.at(i).address().toString().trimmed() +
+                     ") rssi: " + QString::number(list.at(i).rssi(), 10);
+                //ls.append(list.at(i));
+                LogSave(time2str() + st, Qt::blue);
+            //}
+        }
+    } else {
+        st = "No devices found";
+        LogSave(time2str() + st, Qt::blue);
     }
 
-    if (bleFind && !tmr_ble) {
+    if (!list.isEmpty()) {
+        //list.clear();
+        //list = ls;
         emit sig_bleGo();
     } else {
         emit sig_bleDone();
@@ -759,33 +777,30 @@ void MainWindow::bleDiscoverFinished()
 //-----------------------------------------------------------------------
 void MainWindow::slot_bleDone()
 {
-        if (tmr_ble > 0) {
-            killTimer(tmr_ble);
-            tmr_ble = 0;
-        }
 
-        if (bleSocket) {
-            bleSocket->disconnect();
-            //delete bleSocket;
-            bleSocket = nullptr;
-        }
-        ble_connect = false;
+    LogSave(time2str() + "BLE done processing.", Qt::blue);
 
-        ui->actionBLE->setChecked(false);
+    if (tmr_ble > 0) {
+        killTimer(tmr_ble);
+        tmr_ble = 0;
+    }
 
-        //if (!udpSock && !con && !tcpSock) {
-            ui->log->setEnabled(false);
-            //ui->actionCLEAR->setEnabled(false);
-        //}
+    if (bleSocket) {
+        bleSocket->disconnect();
+        //delete bleSocket;
+        bleSocket = nullptr;
+    }
+    ble_connect = false;
 
+    index = -1;
+    list.clear();
+    if (bleWin) {
+        delete bleWin;
+        bleWin = nullptr;
+    }
 
-        ui->actionHUMI->setEnabled(false);
-        ui->actionTemp->setEnabled(false);
-
-
-        ui->cmd->setEnabled(false);
-        ui->crlfBox->setEnabled(false);
-
+    //if (!con) ui->log->setEnabled(false);
+    ui->actionBLE->setChecked(false);
 
 }
 //-----------------------------------------------------------------------
@@ -793,30 +808,65 @@ void MainWindow::slot_bleTimeOut()
 {
     killTimer(tmr_ble);
     tmr_ble = 0;
-    //disconnect(this, &MainWindow::sig_bleTimeOut, this, &MainWindow::slot_bleTimeOut);
 
     QPixmap pm(war_pic);
-    QString st = "Timeout connect to device " + bleDevNameAddr;
+    QString st = "No selected bluetooth device !";
+    if (index >= 0) st = "Timeout connect to device " + bleDevNameAddr;
     toStatusLine(st, picWar);
-    LogSave(st);
-
-    QMessageBox::critical(this, "Error", st, QMessageBox::StandardButton::Ok);
+    LogSave(time2str() + st, Qt::blue);
 
     emit sig_bleDone();
 
+    QMessageBox::critical(this, "Error", st, QMessageBox::StandardButton::Ok);
+}
+//-----------------------------------------------------------------------
+void MainWindow::getDevIndex(int ix)
+{
+    index = ix;
+    if (index >= 0) {
+        bleFind = true;
+        infoDev = list.at(index);
+        bleDevNameAddr = infoDev.name().trimmed() + " (" + infoDev.address().toString().trimmed() + ")";
+
+        if (bleWin) {
+            delete bleWin;
+            bleWin = nullptr;
+        }
+
+        emit sig_bleGo();
+    } else {
+        emit sig_bleDone();
+    }
 }
 //-----------------------------------------------------------------------
 void MainWindow::bleGo()
 {
-
+    //
+    if (list.size() && (index < 0)) {
+        if (!bleWin) {
+            bleWin = new bleDialog(this);
+            if (bleWin) {
+                bleWin->addDev(&list);
+                bleWin->show();
+                connect(bleWin, &bleDialog::sig_sndSelInd, this, &MainWindow::getDevIndex);
+                tmr_ble = startTimer(60000);// wait connection 5 sec.
+                if (tmr_ble <= 0) {
+                    MyError |= 2;//start_timer error
+                    throw TheError(MyError);
+                }
+            }
+        }
+    }
+    //
+    if (index < 0) return;
+    //
     if (bleSocket) {
         bleSocket->disconnect();
         delete bleSocket;
         bleSocket = nullptr;
     }
-
-    QString st = "Discovery finished.\nSelected device/service " + bleDevNameAddr;
-    LogSave(st);
+    //
+    QString st;
     int pf = picErr;
 
     //QBluetoothRfcommSocket bs;
@@ -826,37 +876,42 @@ void MainWindow::bleGo()
         blePack.clear();
         //QBluetoothUuid uuid(tr("FFE0--0000-1000-8000-00805F9B34FB"));//"{0000110E-0000-1000-8000-00805F9B34FB}"; // UUID of the 'A/V Remote Control' service
         QBluetoothUuid uuid = QBluetoothUuid(QBluetoothUuid::SerialPort);
+        /*
+        if (localDevice->pairingStatus(infoDev.address()) != QBluetoothLocalDevice::Paired) {
+            localDevice->requestPairing(infoDev.address(), QBluetoothLocalDevice::Paired);
+        }
+        */
         bleSocket->connectToService(infoDev.address(), uuid, QIODevice::ReadWrite);
         //bleSocket->connectToService(infoDev.address(), QIODevice::ReadWrite);
 
         //bleSocket->open(QIODevice::ReadWrite);
 
         connect(bleSocket, SIGNAL(error(QBluetoothSocket::SocketError)), this, SLOT(bleSocketError(QBluetoothSocket::SocketError)));
-        connect(bleSocket, SIGNAL(connected()), this, SLOT(bleSocketConnected()));
-        connect(bleSocket, SIGNAL(disconnected()), this, SLOT(slot_bleDone()));
-        connect(bleSocket, SIGNAL(readyRead()), this, SLOT(bleSocketRead()));
         connect(bleSocket, SIGNAL(stateChanged(QBluetoothSocket::SocketState)), this, SLOT(bleSocketStateChanged()));
+        connect(bleSocket, &QBluetoothSocket::connected, this, &MainWindow::bleSocketConnected);
+        connect(bleSocket, &QBluetoothSocket::disconnected, this, &MainWindow::slot_bleDone);
+        connect(bleSocket, &QBluetoothSocket::readyRead, this, &MainWindow::bleSocketRead);
 
-        st = "Wait connect with device " + bleDevNameAddr + " ...";
+        st = "Wait connect to device '" + bleDevNameAddr + "'  " + QString::number(tmr_ble_wait / 1000, 10) + " sec...";
         pf = picInfo;
 
+        /*tmr_ble = 0;
         tmr_ble = startTimer(tmr_ble_wait);// wait connection 5 sec.
         if (tmr_ble <= 0) {
             MyError |= 2;//start_timer error
             throw TheError(MyError);
-        }
+        }*/
         //
-        //if (localDevice->pairingStatus(infoDev.address()) != QBluetoothLocalDevice::Paired) {
-        //    localDevice->requestPairing(infoDev.address(), QBluetoothLocalDevice::Paired);
-        //}
+        if (localDevice->pairingStatus(infoDev.address()) != QBluetoothLocalDevice::Paired) {
+            localDevice->requestPairing(infoDev.address(), QBluetoothLocalDevice::Paired);
+        }
         //
     } else {
         st = "Error create socket for ble connection with defice " + bleDevNameAddr;
     }
 
     toStatusLine(st, pf);
-    LogSave(st);
-
+    LogSave(time2str() + st, Qt::blue);
 }
 //-----------------------------------------------------------------------
 void MainWindow::bleSocketStateChanged()
@@ -886,7 +941,7 @@ void MainWindow::bleSocketStateChanged()
         break;
             //default : st = "unknown state";
     }
-    if (st.length()) LogSave("BLE socket state : " + st);
+    if (st.length()) LogSave(time2str() + "BLE socket state change to : " + st, Qt::blue);
 }
 //-----------------------------------------------------------------------
 void MainWindow::bleSocketError(QBluetoothSocket::SocketError bleErr)
@@ -899,29 +954,19 @@ void MainWindow::bleSocketError(QBluetoothSocket::SocketError bleErr)
 
     QString qs = "BLE socket ERROR (" + QString::number(static_cast<int>(bleErr), 10) + ") : " + bleSocket->errorString();
 
-    LogSave(qs);
+    LogSave(time2str() + qs, Qt::blue);
     toStatusLine(qs, picDis);
-    QMessageBox::critical(this, "ERROR", qs, QMessageBox::StandardButton::Ok);
-
 
     emit sig_bleDone();
 
+    QMessageBox::critical(this, "ERROR", qs, QMessageBox::StandardButton::Ok);
 }
 //-----------------------------------------------------------------------
 void MainWindow::bleSocketConnected()
 {
     ble_connect = true;
 
-//    ui->actionCLEAR->setEnabled(true);
-    ui->actionHUMI->setEnabled(true);
-    ui->actionTemp->setEnabled(true);
-
-    ui->cmd->setEnabled(true);
-    ui->crlfBox->setEnabled(true);
-    ui->log->setEnabled(true);
-
     toStatusLine("Connection to device " + bleSocket->peerName(), picCon);
-
 }
 //-----------------------------------------------------------------------
 void MainWindow::bleSocketRead()
@@ -945,7 +990,7 @@ void MainWindow::bleSocketRead()
             jsMode = false;
         }
 
-        LogSave(line);
+        LogSave(line, Qt::blue);
         if (blePack.length() >= (ix + 1)) blePack.remove(0, ix);
                                      else blePack.clear();
         //

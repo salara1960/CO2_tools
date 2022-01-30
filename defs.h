@@ -21,7 +21,7 @@
 
 #define SET_DEBUG
 
-//#define SET_BLUETOOTH
+#define SET_BLUETOOTH
 #ifdef SET_BLUETOOTH
     #define SET_BLE_DEVICE
 #endif

@@ -906,6 +906,12 @@ color: rgb(0, 0, 255);</string>
     </item>
     <item row="4" column="0" colspan="5">
      <widget class="QTextEdit" name="log">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <property name="minimumSize">
        <size>
         <width>940</width>
@@ -916,6 +922,9 @@ color: rgb(0, 0, 255);</string>
        <string notr="true">color: rgb(0, 0, 255);
 background-color: rgb(255, 255, 255);
 font: 12pt &quot;Sans Serif&quot;;</string>
+      </property>
+      <property name="verticalScrollBarPolicy">
+       <enum>Qt::ScrollBarAlwaysOn</enum>
       </property>
      </widget>
     </item>

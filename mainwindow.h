@@ -49,7 +49,7 @@
     #include <QtBluetooth/qbluetoothaddress.h>
     #include <QtBluetooth/qbluetoothserviceinfo.h>
 
-    //#include <QtBluetooth/qbluetoothserver.h>
+    #include <QtBluetooth/qbluetoothserver.h>
     //#include <QBluetoothRfcommSocket>
 
 #endif
@@ -99,6 +99,7 @@ class MainWindow;
 
 class SettingsDialog;
 class Widget;
+class bleDialog;
 
 //********************************************************************************
 
@@ -128,7 +129,7 @@ public slots:
 
     int initSerial();
     void deinitSerial();
-    void LogSave(const QString &);
+    void LogSave(const QString &, Qt::GlobalColor);
     void About();
     unsigned char myhextobin(const char *);
     void hexTobin(const char *, QByteArray *);
@@ -148,8 +149,11 @@ private slots:
     void mkDataFromStr(QString);
     void slotWrite(QByteArray &);
     void grafic(int);
+    void getDevIndex(int);
+    void rst_screen();
 
 #ifdef SET_BLUETOOTH
+    QString time2str();
     void beginBle();
     void bleDiscoverFinished();
     void bleGo();
@@ -171,6 +175,7 @@ signals:
     void sigDisc();
     void sig_on_answer();
     void sig_grafic(int);
+    void sig_rst_screen();
 
 #ifdef SET_BLUETOOTH
     void sig_bleTimeOut();
@@ -214,7 +219,7 @@ private:
     QBluetoothSocket *bleSocket = nullptr;
 
     const QString bleRemoteMarker = "JDY-";//25M";
-    const QString bleRemoteMac = "?";//"11:89:C0:90:0B:2F";//"FC:58:FA:A9:6F:D8";//"20:07:19:0B:52:AB";//
+    const QString bleRemoteMac = "11:89:C0:90:0B:2F";//"FC:58:FA:A9:6F:D8";//"20:07:19:0B:52:AB";//
 
     QBluetoothLocalDevice *localDevice = nullptr;
     QBluetoothDeviceDiscoveryAgent *discoveryAgent = nullptr;
@@ -223,9 +228,13 @@ private:
     QByteArray blePack;
     bool ble_connect = false;
     QBluetoothDeviceInfo infoDev;
-    int tmr_ble;
-    const int tmr_ble_wait = 16000;
+    int tmr_ble, tmr_rst;
+    const int tmr_ble_wait = 10000;
     bool bleFind = false;
+    QList<QBluetoothDeviceInfo>list;
+
+    bleDialog *bleWin = nullptr;
+    int index;
 #endif
 
 };
