@@ -832,7 +832,7 @@ image: url(:/png/clock.png);</string>
         <property name="font">
          <font>
           <family>Sans Serif</family>
-          <pointsize>14</pointsize>
+          <pointsize>12</pointsize>
           <weight>50</weight>
           <italic>true</italic>
           <bold>false</bold>
@@ -840,7 +840,7 @@ image: url(:/png/clock.png);</string>
         </property>
         <property name="styleSheet">
          <string notr="true">color: rgb(255, 255, 255);
-font: italic 14pt &quot;Sans Serif&quot;;</string>
+font: italic 12pt &quot;Sans Serif&quot;;</string>
         </property>
         <property name="text">
          <string>TextLabel</string>
@@ -861,7 +861,7 @@ font: italic 14pt &quot;Sans Serif&quot;;</string>
         </property>
         <property name="styleSheet">
          <string notr="true">color: rgb(0, 0, 255);
-font: 12pt &quot;Sans Serif&quot;;
+font: 10pt &quot;Sans Serif&quot;;
 background-color: rgb(255, 255, 255);</string>
         </property>
         <property name="text">
@@ -921,7 +921,7 @@ color: rgb(0, 0, 255);</string>
       <property name="styleSheet">
        <string notr="true">color: rgb(0, 0, 255);
 background-color: rgb(255, 255, 255);
-font: 12pt &quot;Sans Serif&quot;;</string>
+font: 10pt &quot;Sans Serif&quot;;</string>
       </property>
       <property name="verticalScrollBarPolicy">
        <enum>Qt::ScrollBarAlwaysOn</enum>
@@ -976,14 +976,14 @@ font: 12pt &quot;Sans Serif&quot;;</string>
       <property name="font">
        <font>
         <family>Sans Serif</family>
-        <pointsize>14</pointsize>
+        <pointsize>12</pointsize>
         <weight>50</weight>
         <italic>true</italic>
         <bold>false</bold>
        </font>
       </property>
       <property name="styleSheet">
-       <string notr="true">font: italic 14pt &quot;Sans Serif&quot;;
+       <string notr="true">font: italic 12pt &quot;Sans Serif&quot;;
 color: rgb(255, 255, 255);</string>
       </property>
       <property name="text">
@@ -1002,7 +1002,7 @@ color: rgb(255, 255, 255);</string>
      <x>0</x>
      <y>0</y>
      <width>960</width>
-     <height>20</height>
+     <height>25</height>
     </rect>
    </property>
    <property name="toolTip">

@@ -44,10 +44,12 @@
 #ifdef SET_BLUETOOTH
 
     #include <QBluetoothLocalDevice>
+    #include <QBluetoothUuid>
     #include <QBluetoothServiceDiscoveryAgent>
     #include <QtBluetooth/QBluetoothSocket>
     #include <QtBluetooth/qbluetoothaddress.h>
     #include <QtBluetooth/qbluetoothserviceinfo.h>
+
 
     #include <QtBluetooth/qbluetoothserver.h>
     //#include <QBluetoothRfcommSocket>
@@ -98,7 +100,7 @@ class MainWindow;
 }
 
 class SettingsDialog;
-class Widget;
+class itWidget;
 class bleDialog;
 
 //********************************************************************************
@@ -213,7 +215,7 @@ private:
     const QString _ppm = "ppm=";
     const QString _que = "que:";
     data_t one;
-    Widget *graf = nullptr;
+    itWidget *graf = nullptr;
 
 #ifdef SET_BLUETOOTH
     QBluetoothSocket *bleSocket = nullptr;

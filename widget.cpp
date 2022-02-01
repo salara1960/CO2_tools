@@ -2,7 +2,7 @@
 #include "ui_widget.h"
 
 //--------------------------------------------------------------------------------
-Widget::Widget(QWidget *parent) : QWidget(parent), ui(new Ui::Widget)
+itWidget::itWidget(QWidget *parent) : QWidget(parent), ui(new Ui::itWidget)
 {
     ui->setupUi(this);
 
@@ -40,15 +40,15 @@ Widget::Widget(QWidget *parent) : QWidget(parent), ui(new Ui::Widget)
 
     tmrs = startTimer(1000);// 1sec.
 
-    connect(this,  &Widget::sig_refresh, this, &Widget::refresh);
+    connect(this,  &itWidget::sig_refresh, this, &itWidget::refresh);
 }
 //--------------------------------------------------------------------------------
-Widget::~Widget()
+itWidget::~itWidget()
 {
     delete ui;
 }
 //--------------------------------------------------------------------------------
-void Widget::paintEvent(QPaintEvent *event)
+void itWidget::paintEvent(QPaintEvent *event)
 {
     Q_UNUSED(event);
 
@@ -86,17 +86,17 @@ void Widget::paintEvent(QPaintEvent *event)
             ind++;
             if (ind >= MAX_COLOR) ind = 0;
             //
-            painter.setFont(QFont("Arial Bold", 16));
+            painter.setFont(QFont("Arial Bold", 14));
             QString text = tr("CO2 : %1%").arg(co2);
             painter.setPen(QPen(color, 6, Qt::SolidLine, Qt::FlatCap));
             painter.drawText(rc_co2, Qt::AlignCenter, text);
             //
             sec2str(&text, rec.dt);
-            painter.setFont(QFont("Sans Serif Bold", 18));
+            painter.setFont(QFont("Sans Serif Bold", 16));
             painter.setPen(QPen(Qt::white, 6, Qt::SolidLine, Qt::FlatCap));
             painter.drawText(rc_time, Qt::AlignCenter, text);
             //
-            painter.setFont(QFont("Arial italic", 14));
+            painter.setFont(QFont("Arial italic", 12));
             text = tr("Humi : %1%").arg(rec.humi);
             painter.setPen(QPen(Qt::magenta, 4, Qt::SolidLine, Qt::FlatCap));
             painter.drawText(rc_humi, Qt::AlignCenter, text);
@@ -110,7 +110,7 @@ void Widget::paintEvent(QPaintEvent *event)
 
 }
 //--------------------------------------------------------------------------------
-void Widget::refresh(void *s, int cd)
+void itWidget::refresh(void *s, int cd)
 {
     data_t *rc = (data_t *)s;
     rec = *rc;
@@ -118,7 +118,7 @@ void Widget::refresh(void *s, int cd)
     repaint();
 }
 //--------------------------------------------------------------------------------
-void Widget::sec2str(QString *st, uint32_t dt)
+void itWidget::sec2str(QString *st, uint32_t dt)
 {
     unsigned long sec = dt;
     unsigned long day = sec / (60 * 60 * 24);
@@ -127,10 +127,10 @@ void Widget::sec2str(QString *st, uint32_t dt)
     sec %= (60 * 60);
     unsigned long min = sec / (60);
     sec %= 60;
-    st->sprintf("%lu.%02lu:%02lu:%02lu", day, hour, min, sec);
+    st->asprintf("%lu.%02lu:%02lu:%02lu", day, hour, min, sec);
 }
 //--------------------------------------------------------------------------------
-void Widget::timerEvent(QTimerEvent *event)
+void itWidget::timerEvent(QTimerEvent *event)
 {
     if (tmrs == event->timerId()) {
         if (rec.dt) {

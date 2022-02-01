@@ -27,17 +27,23 @@ void bleDialog::addDev(QList<QBluetoothDeviceInfo> *lst)
     int i = -1;
     QStringList stx;
     //stx << "No device selected";
+    QString tp, tmp;
     while (++i < lst->size()) {
-        stx << lst->at(i).name().trimmed() +
+        tp = lst->at(i).name().trimmed() +
                " (" +
                lst->at(i).address().toString().trimmed() +
                ") rssi:" +
                QString::number(lst->at(i).rssi(), 10);
-    }
+        stx << tp;
+        tmp.append(tp + "<br>");
 
+    }
     ui->blebox->addItems(stx);
 
-    if (stx.size()) {
+    ui->text->setHtml(tmp);
+
+
+    /*if (stx.size()) {
         QString st, serv;
         for (int i = 0; i < stx.size(); i++) {
             st.append(stx.at(i) + "<br>");
@@ -50,7 +56,7 @@ void bleDialog::addDev(QList<QBluetoothDeviceInfo> *lst)
             st.append(serv);
         }
         ui->text->setHtml(st);
-    }
+    }*/
 }
 //----------------------------------------------------------------------------------
 void bleDialog::devSelected()

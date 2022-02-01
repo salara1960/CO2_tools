@@ -14,18 +14,18 @@
 //QT_BEGIN_NAMESPACE
 
 namespace Ui {
-    class Widget;
+    class itWidget;
 }
 
 //QT_END_NAMESPACE
 
-class Widget : public QWidget
+class itWidget : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit Widget(QWidget *parent = 0);
-    ~Widget();
+    explicit itWidget(QWidget *parent = 0);
+    ~itWidget();
 
 protected:
     void paintEvent(QPaintEvent *event) override;
@@ -41,7 +41,7 @@ signals:
     void sig_refresh(void *, int);
 
 private:
-    Ui::Widget *ui;
+    Ui::itWidget *ui;
     QRect rect, rc, rc_co2, rc_time, rc_humi, rc_temp;
     data_t rec;
     int tmrs, ind = 0, cmd;

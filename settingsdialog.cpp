@@ -133,7 +133,7 @@ void SettingsDialog::fillPortsParameters()
     int idx = 0;
     QString stx;
     for (int i = 0; i < TOTAL_SPEED; i++) {
-        stx.sprintf("%d", spd_all[i]);
+        stx.asprintf("%d", spd_all[i]);
         m_ui->baudRateBox->addItem(stx, spd_all[i]);
         if (m_currentSettings.baudRate == spd_all[i]) idx = i;
     }

@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
     catch (MainWindow::TheError(er)) {
         int cerr = er.code;
         QString errStr = "", cerrStr;
-        cerrStr.sprintf("%d", cerr);
+        cerrStr.asprintf("%d", cerr);
         if (cerr > 0) {
             if (cerr & 1) errStr.append("Error create serial port object (" + cerrStr + ")\n");
             if (cerr & 2) errStr.append("Error starting internal timer (" + cerrStr + ")\n");

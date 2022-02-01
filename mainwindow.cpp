@@ -32,7 +32,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     chap.clear();
     tmr_rst = 0;
 
-    graf = new Widget(ui->graf);
+    graf = new itWidget(ui->graf);
 
     //----  Set timer with period to 10 msec ----
     tmr_sec = startTimer(10);// 10 msec.
@@ -45,7 +45,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->actionTemp->setVisible(false);
     ui->actionHUMI->setVisible(false);
 
-    connect(this, SIGNAL(sigWrite(QByteArray &)), this, SLOT(slotWrite(QByteArray &)));
+    connect(this, &MainWindow::sigWrite, this, &MainWindow::slotWrite);
 
     connect(ui->actionVERSION,    &QAction::triggered,         this, &MainWindow::About);
     connect(ui->actionCONNECT,    &QAction::triggered,         this, &MainWindow::on_connect);
@@ -74,7 +74,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     this->setFont(font);
     QString attr = "{border: 4px 4px 4px 4px;\
             border-color: rgb(0, 0, 0);\
-            font: italic 14pt \"Sans Serif\";\
+            font: italic 12pt \"Sans Serif\";\
             color: rgb(255, 255, 255);}";
     ui->date_time->setStyleSheet("QLabel" + attr);
     ui->val_temp->setStyleSheet("QLabel" + attr);
@@ -316,12 +316,12 @@ void MainWindow::on_connect()
         emit graf->sig_refresh((void *)&one, msg_con);
 
         toStatusLine(tr("Подключен к %1 : %2 %3%4%5 FlowControl %6")
-                          .arg(sdevName)
-                          .arg(conf->settings().stringBaudRate)
-                          .arg(conf->settings().stringDataBits)
-                          .arg(conf->settings().stringParity.at(0))
-                          .arg(conf->settings().stringStopBits)
-                          .arg(conf->settings().stringFlowControl), picCon);
+                     .arg(sdevName,
+                          conf->settings().stringBaudRate,
+                          conf->settings().stringDataBits,
+                          conf->settings().stringParity.at(0),
+                          conf->settings().stringStopBits,
+                          conf->settings().stringFlowControl), picCon);
         con = true;
         ui->actionCONNECT->setEnabled(false);
         ui->actionPORT->setEnabled(false);
@@ -334,11 +334,11 @@ void MainWindow::on_connect()
 
 
         ui->actionPORT->setToolTip(tr("Параметры последовательного порта:\n%1 %2 %3%4%5")
-                                   .arg(sdevName)
-                                   .arg(conf->settings().stringBaudRate)
-                                   .arg(conf->settings().stringDataBits)
-                                   .arg(conf->settings().stringParity.at(0))
-                                   .arg(conf->settings().stringStopBits));
+                                   .arg(sdevName,
+                                   conf->settings().stringBaudRate,
+                                   conf->settings().stringDataBits,
+                                   conf->settings().stringParity.at(0),
+                                   conf->settings().stringStopBits));
 
         on_answer();
 
@@ -484,8 +484,7 @@ void MainWindow::mkDataFromStr(QString str)
     pos = str.indexOf(" | [que:", 0); //0.00:09:20 | [que:1] MQ135: adc=903 ppm=320, SI7021: temp=23.59 humi=24.40
     if (pos != -1) {
         tmp = str.mid(0, pos);
-        QByteArray bf;
-        bf.append(tmp);
+        QByteArray bf(tmp.toLocal8Bit());
         if (sscanf(bf.data(), "%d.%d:%d:%d", &dev_time.day, &dev_time.hour, &dev_time.min, &dev_time.sec) == 4) {
             devTime = one.dt = (dev_time.day * 86400) + (dev_time.hour * 3600) + (dev_time.min * 60) + dev_time.sec;
         }
@@ -544,15 +543,15 @@ void MainWindow::mkDataFromStr(QString str)
     }
 
     if (one.temp && one.humi && one.ppm) {
-        tmp.sprintf(" %.2f C", one.temp);
+        tmp.asprintf(" %.2f C", one.temp);
         ui->val_temp->setText(tmp);
         ui->val_temp->setToolTip("Температура (град.Цельсия)");
 
-        tmp.sprintf(" %.2f %%", one.humi);
+        tmp.asprintf(" %.2f %%", one.humi);
         ui->val_humi->setText(tmp);
         ui->val_humi->setToolTip("Влажность (проценты)");
 
-        tmp.sprintf(" %.2f %%", one.co2);
+        tmp.asprintf(" %.2f %%", one.co2);
         QString attr = "{color: rgb(0, 95, 0); background-color: rgb(0, 95, 0);}";//GREEN
         if ((one.ppm > 400.0) && (one.ppm < 600)) attr = "{color: rgb(0, 95, 0); background-color: rgb(255, 255, 0);}";//YELLOW
         else
@@ -901,11 +900,11 @@ void MainWindow::bleGo()
             MyError |= 2;//start_timer error
             throw TheError(MyError);
         }*/
-        //
+        /*
         if (localDevice->pairingStatus(infoDev.address()) != QBluetoothLocalDevice::Paired) {
             localDevice->requestPairing(infoDev.address(), QBluetoothLocalDevice::Paired);
         }
-        //
+        */
     } else {
         st = "Error create socket for ble connection with defice " + bleDevNameAddr;
     }
