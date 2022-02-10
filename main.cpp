@@ -9,8 +9,10 @@
 #include <iostream>
 
 //----------------------------------------------------------------------------------
-//     Основной модуль программы
 //
+//                Основной модуль программы CO2_tools
+//
+//----------------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
 
@@ -53,7 +55,7 @@ int main(int argc, char *argv[])
 
         return cerr;
     }
-    catch (std::bad_alloc) {
+    catch (std::bad_alloc const&) {
         perror("Error while get alloc memory (function new)\n");
 
         return -1;

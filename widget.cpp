@@ -1,3 +1,7 @@
+/*
+    Реализация класса для создания эмулятора круглого дисплея IPS GC9A01
+*/
+
 #include "widget.h"
 #include "ui_widget.h"
 
@@ -127,7 +131,10 @@ void itWidget::sec2str(QString *st, uint32_t dt)
     sec %= (60 * 60);
     unsigned long min = sec / (60);
     sec %= 60;
-    st->asprintf("%lu.%02lu:%02lu:%02lu", day, hour, min, sec);
+    char tmp[32] = {0};
+    sprintf(tmp, "%lu.%02lu:%02lu:%02lu", day , hour, min, sec);
+    st->clear();
+    st->append(tmp);
 }
 //--------------------------------------------------------------------------------
 void itWidget::timerEvent(QTimerEvent *event)

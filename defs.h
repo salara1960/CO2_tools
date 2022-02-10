@@ -23,6 +23,7 @@
 
 #define SET_BLUETOOTH
 #ifdef SET_BLUETOOTH
+    #define MAX_BLE_STAT 2
     #define SET_BLE_DEVICE
 #endif
 
@@ -85,7 +86,9 @@ enum {
     picErr,
     picCon,
     picDis,
-    picOk
+    picOk,
+    picDevOk,
+    picDel
 };
 
 enum {

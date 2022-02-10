@@ -478,7 +478,6 @@
   </property>
   <property name="font">
    <font>
-    <family>Arimo</family>
     <pointsize>10</pointsize>
     <italic>false</italic>
    </font>
@@ -491,240 +490,390 @@
     <normaloff>:/png/izba.png</normaloff>:/png/izba.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QGridLayout" name="gridLayout_4">
-    <item row="0" column="0" colspan="2">
-     <layout class="QGridLayout" name="gridLayout">
+   <layout class="QGridLayout" name="gridLayout_9">
+    <item row="0" column="0">
+     <layout class="QGridLayout" name="gridLayout_8">
       <item row="0" column="0">
-       <widget class="QLabel" name="lab_humi">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>40</width>
-          <height>40</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>40</width>
-          <height>40</height>
-         </size>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">image: url(:/png/humidity.png);
+       <layout class="QGridLayout" name="gridLayout">
+        <item row="0" column="0">
+         <widget class="QLabel" name="lab_humi">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>40</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>40</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">image: url(:/png/humidity.png);
 border-bottom-color: rgb(41, 41, 41);
 border-right-color: rgb(41, 41, 41);</string>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QLabel" name="val_humi">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>170</width>
-          <height>40</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>170</width>
-          <height>40</height>
-         </size>
-        </property>
-        <property name="font">
-         <font>
-          <family>Sans Serif</family>
-          <pointsize>16</pointsize>
-          <weight>50</weight>
-          <italic>false</italic>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">font: 16pt &quot;Sans Serif&quot;;
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QLabel" name="val_humi">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>270</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>270</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>16</pointsize>
+            <italic>false</italic>
+            <bold>false</bold>
+           </font>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">font: 16pt &quot;Sans Serif&quot;;
 color: rgb(255, 255, 255);</string>
-        </property>
-        <property name="text">
-         <string> 34.52 %</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-        </property>
-       </widget>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
       <item row="1" column="0">
-       <widget class="QLabel" name="lab_temp">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>40</width>
-          <height>40</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>40</width>
-          <height>40</height>
-         </size>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">image: url(:/png/temperature.png);
+       <layout class="QGridLayout" name="gridLayout_3">
+        <item row="0" column="0">
+         <widget class="QLabel" name="lab_temp">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>40</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>40</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">image: url(:/png/temperature.png);
 border-bottom-color: rgb(41, 41, 41);
 border-right-color: rgb(41, 41, 41);</string>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QLabel" name="val_temp">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>170</width>
-          <height>40</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>170</width>
-          <height>40</height>
-         </size>
-        </property>
-        <property name="font">
-         <font>
-          <family>Sans Serif</family>
-          <pointsize>16</pointsize>
-          <weight>50</weight>
-          <italic>false</italic>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">font: 16pt &quot;Sans Serif&quot;;
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QLabel" name="val_temp">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>270</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>270</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>16</pointsize>
+            <italic>false</italic>
+            <bold>false</bold>
+           </font>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">font: 16pt &quot;Sans Serif&quot;;
 color: rgb(255, 255, 255);</string>
-        </property>
-        <property name="text">
-         <string> 25.82 C</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-        </property>
-       </widget>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
       <item row="2" column="0">
-       <widget class="QLabel" name="lab_que">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>40</width>
-          <height>40</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>40</width>
-          <height>40</height>
-         </size>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">border-bottom-color: rgb(41, 41, 41);
+       <layout class="QGridLayout" name="gridLayout_5">
+        <item row="0" column="0">
+         <widget class="QLabel" name="lab_que">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>40</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>40</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">border-bottom-color: rgb(41, 41, 41);
 border-right-color: rgb(41, 41, 41);
 background-image: url(:/png/queue.png);
 
 </string>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
-       <widget class="QLabel" name="val_que">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>170</width>
-          <height>40</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>170</width>
-          <height>40</height>
-         </size>
-        </property>
-        <property name="font">
-         <font>
-          <family>Sans Serif</family>
-          <pointsize>16</pointsize>
-          <weight>50</weight>
-          <italic>false</italic>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">font: 16pt &quot;Sans Serif&quot;;
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QLabel" name="val_que">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>270</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>270</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>16</pointsize>
+            <italic>false</italic>
+            <bold>false</bold>
+           </font>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">font: 16pt &quot;Sans Serif&quot;;
 color: rgb(255, 255, 255);</string>
-        </property>
-        <property name="text">
-         <string> 0</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-        </property>
-       </widget>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="3" column="0">
+       <layout class="QGridLayout" name="gridLayout_6">
+        <item row="0" column="0">
+         <widget class="QLabel" name="lab_device">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>40</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>40</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">border-bottom-color: rgb(41, 41, 41);
+border-right-color: rgb(41, 41, 41);
+
+</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QLabel" name="device">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>270</width>
+            <height>70</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>270</width>
+            <height>70</height>
+           </size>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+            <italic>true</italic>
+            <bold>false</bold>
+           </font>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">color: rgb(255, 255, 255);
+font: italic 10pt &quot;Sans Serif&quot;;</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="4" column="0">
+       <layout class="QGridLayout" name="gridLayout_7">
+        <item row="0" column="0">
+         <widget class="QLabel" name="lab_clock">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>32</width>
+            <height>32</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>32</width>
+            <height>32</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">border-bottom-color: rgb(41, 41, 41);
+border-right-color: rgb(41, 41, 41);
+image: url(:/png/clock.png);</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QLabel" name="date_time">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>280</width>
+            <height>32</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>300</width>
+            <height>32</height>
+           </size>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>12</pointsize>
+            <italic>true</italic>
+            <bold>false</bold>
+           </font>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">color: rgb(255, 255, 255);
+font: italic 12pt &quot;Sans Serif&quot;;</string>
+          </property>
+          <property name="text">
+           <string>Date &amp; Time</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
      </layout>
     </item>
-    <item row="0" column="2" rowspan="2">
-     <spacer name="verticalSpacer_2">
+    <item row="0" column="1">
+     <spacer name="horizontalSpacer_3">
       <property name="orientation">
-       <enum>Qt::Vertical</enum>
+       <enum>Qt::Horizontal</enum>
       </property>
       <property name="sizeHint" stdset="0">
        <size>
-        <width>98</width>
-        <height>227</height>
+        <width>8</width>
+        <height>265</height>
        </size>
       </property>
      </spacer>
     </item>
-    <item row="0" column="3" rowspan="3">
+    <item row="0" column="2">
      <widget class="QWidget" name="graf" native="true">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -751,111 +900,54 @@ background-image: url(:/png/ips1.png);
       </property>
      </widget>
     </item>
-    <item row="0" column="4" rowspan="3">
-     <spacer name="horizontalSpacer">
+    <item row="0" column="3">
+     <spacer name="horizontalSpacer_2">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
       <property name="sizeHint" stdset="0">
        <size>
-        <width>87</width>
-        <height>258</height>
+        <width>8</width>
+        <height>269</height>
        </size>
       </property>
      </spacer>
     </item>
-    <item row="1" column="1">
-     <spacer name="verticalSpacer">
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
+    <item row="0" column="4">
+     <widget class="QTableWidget" name="sql">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
       </property>
-      <property name="sizeHint" stdset="0">
+      <property name="minimumSize">
        <size>
-        <width>20</width>
-        <height>81</height>
+        <width>310</width>
+        <height>270</height>
        </size>
       </property>
-     </spacer>
+      <property name="maximumSize">
+       <size>
+        <width>800</width>
+        <height>270</height>
+       </size>
+      </property>
+     </widget>
     </item>
-    <item row="2" column="0" colspan="3">
-     <layout class="QGridLayout" name="gridLayout_3">
-      <item row="0" column="0">
-       <widget class="QLabel" name="lab_clock">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>32</width>
-          <height>32</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>32</width>
-          <height>32</height>
-         </size>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">border-bottom-color: rgb(41, 41, 41);
-border-right-color: rgb(41, 41, 41);
-image: url(:/png/clock.png);</string>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QLabel" name="date_time">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>300</width>
-          <height>32</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>300</width>
-          <height>32</height>
-         </size>
-        </property>
-        <property name="font">
-         <font>
-          <family>Sans Serif</family>
-          <pointsize>12</pointsize>
-          <weight>50</weight>
-          <italic>true</italic>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">color: rgb(255, 255, 255);
-font: italic 12pt &quot;Sans Serif&quot;;</string>
-        </property>
-        <property name="text">
-         <string>TextLabel</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-    <item row="3" column="0" colspan="5">
+    <item row="1" column="0" colspan="5">
      <layout class="QGridLayout" name="gridLayout_2">
       <item row="0" column="0">
        <widget class="QLineEdit" name="cmd">
         <property name="minimumSize">
          <size>
           <width>850</width>
+          <height>40</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
           <height>40</height>
          </size>
         </property>
@@ -871,6 +963,12 @@ background-color: rgb(255, 255, 255);</string>
       </item>
       <item row="0" column="1">
        <widget class="QCheckBox" name="crlfBox">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <property name="minimumSize">
          <size>
           <width>80</width>
@@ -885,9 +983,7 @@ background-color: rgb(255, 255, 255);</string>
         </property>
         <property name="font">
          <font>
-          <family>Sans Serif</family>
           <pointsize>12</pointsize>
-          <weight>50</weight>
           <italic>false</italic>
           <bold>false</bold>
          </font>
@@ -904,10 +1000,10 @@ color: rgb(0, 0, 255);</string>
       </item>
      </layout>
     </item>
-    <item row="4" column="0" colspan="5">
+    <item row="2" column="0" colspan="5">
      <widget class="QTextEdit" name="log">
       <property name="sizePolicy">
-       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
@@ -928,68 +1024,70 @@ font: 10pt &quot;Sans Serif&quot;;</string>
       </property>
      </widget>
     </item>
-    <item row="5" column="0">
-     <widget class="QLabel" name="pic">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="minimumSize">
-       <size>
-        <width>40</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>40</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
-     </widget>
-    </item>
-    <item row="5" column="1" colspan="4">
-     <widget class="QLabel" name="status">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="minimumSize">
-       <size>
-        <width>890</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>16777215</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="font">
-       <font>
-        <family>Sans Serif</family>
-        <pointsize>12</pointsize>
-        <weight>50</weight>
-        <italic>true</italic>
-        <bold>false</bold>
-       </font>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">font: italic 12pt &quot;Sans Serif&quot;;
+    <item row="3" column="0" colspan="5">
+     <layout class="QGridLayout" name="gridLayout_4">
+      <item row="0" column="0">
+       <widget class="QLabel" name="pic">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>40</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>40</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLabel" name="status">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>890</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+          <italic>true</italic>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">font: italic 12pt &quot;Sans Serif&quot;;
 color: rgb(255, 255, 255);</string>
-      </property>
-      <property name="text">
-       <string>TextLabel</string>
-      </property>
-     </widget>
+        </property>
+        <property name="text">
+         <string>TextLabel</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
    </layout>
   </widget>
@@ -1002,7 +1100,7 @@ color: rgb(255, 255, 255);</string>
      <x>0</x>
      <y>0</y>
      <width>960</width>
-     <height>25</height>
+     <height>26</height>
     </rect>
    </property>
    <property name="toolTip">
@@ -1533,7 +1631,6 @@ color: rgb(255, 255, 255);</string>
    </property>
    <property name="font">
     <font>
-     <family>Arimo</family>
      <pointsize>10</pointsize>
      <italic>false</italic>
     </font>
@@ -1740,6 +1837,9 @@ color: rgb(255, 255, 255);</string>
    </property>
    <property name="text">
     <string>Bluetooth</string>
+   </property>
+   <property name="toolTip">
+    <string>Scan bluetooth devices</string>
    </property>
    <property name="font">
     <font>

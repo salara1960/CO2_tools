@@ -37,9 +37,10 @@
 #include <QKeyEvent>
 #include <QFileDialog>
 #include <QIODevice>
+#include <QProgressBar>
+#include <QString>
 
 #include "defs.h"
-
 
 #ifdef SET_BLUETOOTH
 
@@ -50,13 +51,45 @@
     #include <QtBluetooth/qbluetoothaddress.h>
     #include <QtBluetooth/qbluetoothserviceinfo.h>
 
-
     #include <QtBluetooth/qbluetoothserver.h>
-    //#include <QBluetoothRfcommSocket>
+
+    #include <QtSql/QtSql>
+    #include <QtSql/QSqlDatabase>
+    #include <QtSql/QSqlQuery>
+    #include <QtSql/QSqlError>
+
+    #include <QtWidgets/QTableWidget>
+    #include <QtWidgets/QTableWidgetItem>
+    #include <QTableView>
+    #include <QHeaderView>
+
+enum {
+    idConnect = 0,
+    idDisconnect
+};
+
+enum {
+    iNum = 0,
+    iName,
+    iAddr,
+    iRssi,
+    iTime
+};
+
+#define MAX_REC_LEN 64
+
+typedef struct {
+    int number;
+    char name[MAX_REC_LEN]; //s_name TEXT,
+    quint64 addr;           //s_addr INTEGER,
+    qint16 rssi;            //s_rssi INTEGER,
+    uint epoth;             //s_epoch TIMESTAMP
+} get_recs_t;
 
 #endif
 
 //********************************************************************************
+
 
 typedef struct {
     int day;
@@ -69,7 +102,7 @@ typedef struct {
 
 const QString title = "CO2_tools";
 
-
+const QString del_pic     = "png/delete.png";
 const QString con_pic     = "png/conn.png";
 const QString dis_pic     = "png/dis.png";
 const QString salara_pic  = "png/niichavo.png";
@@ -89,9 +122,14 @@ const QString pdf_pic     = "png/pdf.png";
 const QString stop_pic    = "png/Stop.png";
 const QString devErr_pic  = "png/devErr.png";
 const QString devOk_pic   = "png/devOk.png";
-
+const QString net_pic     = "png/network.png";
+const QString net32_pic   = "png/ibcon32.png";
+const QString net64_pic   = "png/ibcon64.png";
 const QString tTip = "QToolTip { color: blue; background-color: white; border: 3px solid #676767; }";
+
 extern qint32 serSpeed;
+
+const QString dt_fmt = "dd.MM.yy hh:mm:ss";
 
 //********************************************************************************
 
@@ -101,8 +139,29 @@ class MainWindow;
 
 class SettingsDialog;
 class itWidget;
-class bleDialog;
+//class bleDialog;
 
+//********************************************************************************
+class itItem: public QTableWidgetItem
+{
+    const QString fmt = dt_fmt;//"dd.MM.yyyy hh:mm:ss";
+
+public:
+
+     bool operator< (const QTableWidgetItem &other) const
+     {
+        if (this->text().contains(" ")) {
+            QDateTime it = QDateTime::fromString(this->text(), fmt);
+            QDateTime cur = QDateTime::fromString(other.text(), fmt);
+            return (it.toTime_t() < cur.toTime_t());
+        } else {
+            if (this->text().contains("."))
+                return (this->text().toFloat(nullptr) < other.text().toFloat(nullptr));
+            else
+                return (this->text().toInt() < other.text().toInt());
+        }
+     }
+};
 //********************************************************************************
 
 class MainWindow : public QMainWindow
@@ -126,6 +185,7 @@ public:
 protected:
     virtual void timerEvent(QTimerEvent *event) override;
     virtual void keyPressEvent(QKeyEvent *) override;
+    virtual void resizeEvent(QResizeEvent *event) override;
 
 public slots:
 
@@ -153,7 +213,6 @@ private slots:
     void grafic(int);
     void getDevIndex(int);
     void rst_screen();
-
 #ifdef SET_BLUETOOTH
     QString time2str();
     void beginBle();
@@ -165,9 +224,25 @@ private slots:
     void slot_bleTimeOut();
     void slot_bleDone();
     //
-    void bleAddDevice(const QBluetoothDeviceInfo &);
     void bleScanError(QBluetoothDeviceDiscoveryAgent::Error);
     void bleSocketStateChanged();
+    void slot_bleScan();
+    void slot_bleStat(bool);
+    void slot_iniSql();
+    QString rec2str(QSqlQuery *);
+    int TotalRecords();
+    bool insToDB(get_recs_t *);
+    int findByAddr(quint64);
+    void readAllDB();
+    void delRecDB(const int nr);
+    void mkRecDB(const QBluetoothDeviceInfo *, get_recs_t *);
+    void sqlGo();
+    void mkSqlTable();
+    int getAllDB();
+    void tblContextMenu(int);
+    void slotSelRecord();
+    void slotDelRecord();
+    void colSort(int);
 #endif
 
 signals:
@@ -178,11 +253,17 @@ signals:
     void sig_on_answer();
     void sig_grafic(int);
     void sig_rst_screen();
-
 #ifdef SET_BLUETOOTH
     void sig_bleTimeOut();
     void sig_bleDone();
     void sig_bleGo();
+    void sig_bleScan();
+    void sig_bleStat(bool);
+    void sig_iniSql();
+    void sig_recsSql();
+    void sig_sqlGo();
+    void sig_getDevIndex(int);
+    void sig_delRecDB(const int nr);
 #endif
 
 private:
@@ -220,23 +301,48 @@ private:
 #ifdef SET_BLUETOOTH
     QBluetoothSocket *bleSocket = nullptr;
 
-    const QString bleRemoteMarker = "JDY-";//25M";
-    const QString bleRemoteMac = "11:89:C0:90:0B:2F";//"FC:58:FA:A9:6F:D8";//"20:07:19:0B:52:AB";//
+    const QString bleRemoteMarker = "JDY-25M";
+    const QString bleRemoteMac = "???";//"11:89:C0:90:0B:2F";//"FC:58:FA:A9:6F:D8";//"20:07:19:0B:52:AB";//
+    const QString db_name = "ble_dev.db3";
+    const QString db_tabl = "ble";
+    const QString ble_stat[MAX_BLE_STAT] = {
+        "CONNECTED",
+        "DISCONNECT"
+    };
+    const QString sep = " ";
+
 
     QBluetoothLocalDevice *localDevice = nullptr;
     QBluetoothDeviceDiscoveryAgent *discoveryAgent = nullptr;
-    QString bleDevStr, bleAddrStr, bleDevNameAddr;
+    get_recs_t infoDev;
+    QList<QBluetoothDeviceInfo>list;
     QBluetoothAddress bleAddr;
+    QString bleDevStr, bleAddrStr, bleDevNameAddr;
     QByteArray blePack;
     bool ble_connect = false;
-    QBluetoothDeviceInfo infoDev;
     int tmr_ble, tmr_rst;
     const int tmr_ble_wait = 10000;
     bool bleFind = false;
-    QList<QBluetoothDeviceInfo>list;
 
-    bleDialog *bleWin = nullptr;
     int index;
+
+    QProgressBar *bleScan = nullptr;
+    uint32_t tmr_ble_scan = 0;
+    bool ble_proc = false;
+
+    QByteArray rdata;
+    QSqlDatabase db;
+    bool openDB = false;
+    int rec_count = 0;
+    int tmr_sql = 0;
+    QString tbl_stat;
+    QString mk_table_db3;
+    QTableWidget *tbl = nullptr;
+    QTableView *tv = nullptr;
+    QList<get_recs_t>rec_list;
+    QSize minWinSql, maxWinSql;
+    int selRow = -1;
+    int con_number = -1;
 #endif
 
 };

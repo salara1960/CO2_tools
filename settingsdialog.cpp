@@ -1,10 +1,3 @@
-/*
-    Автор : Ильминский А.Н.
-    Дата : 28.12.2020
-    Сервисная прогамма для работы с устройством "BlackPillDevice"
-*/
-
-
 #include "settingsdialog.h"
 #include "ui_settingsdialog.h"
 

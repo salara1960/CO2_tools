@@ -1,9 +1,3 @@
-/*
-    Автор : Ильминский А.Н.
-    Дата : 28.12.2020
-    Сервисная прогамма для работы с устройством "BlackPillDevice"
-*/
-
 #ifndef SETTINGSDIALOG_H
 #define SETTINGSDIALOG_H
 

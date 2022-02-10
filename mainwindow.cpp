@@ -1,11 +1,16 @@
 #include "ui_mainwindow.h"
 #include "settingsdialog.h"
 #include "widget.h"
-#include "ble_dialog.h"
 #include "mainwindow.h"
 //******************************************************************************************************
 
 qint32 serSpeed = 230400;//115200;
+
+#ifdef SET_BLUETOOTH
+
+
+
+#endif
 
 //******************************************************************************************************
 
@@ -92,19 +97,48 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         throw TheError(MyError);
     }
 
-    connect(ui->actionPORT,       &QAction::triggered,     conf, &SettingsDialog::sig_confShow);
+    ui->log->setTextColor(Qt::blue);
+
+    connect(ui->actionPORT, &QAction::triggered,         conf, &SettingsDialog::sig_confShow);
 #ifdef SET_BLUETOOTH
-    connect(ui->actionBLE, &QAction::triggered,         this, &MainWindow::beginBle);
-    connect(this,          &MainWindow::sig_bleTimeOut, this, &MainWindow::slot_bleTimeOut);
-    connect(this,          &MainWindow::sig_bleDone,    this, &MainWindow::slot_bleDone);
-    connect(this,          &MainWindow::sig_bleGo,      this, &MainWindow::bleGo);
+    QString atr = "{border: 2px 2px 2px 2px;\
+            border-color: rgb(0, 0, 0);\
+            font: italic 8pt \"Sans Serif\";\
+            background-color: rgb(120, 120, 120);\
+            color: rgb(255, 255, 255);}";
+    ui->sql->setStyleSheet("QWidget" + atr);
+    minWinSql = ui->sql->minimumSize();
+    maxWinSql = ui->sql->maximumSize();
+
+    connect(ui->actionBLE,  &QAction::triggered,         this, &MainWindow::beginBle);
+    connect(this,           &MainWindow::sig_bleTimeOut, this, &MainWindow::slot_bleTimeOut);
+    connect(this,           &MainWindow::sig_bleDone,    this, &MainWindow::slot_bleDone);
+    connect(this,           &MainWindow::sig_bleGo,      this, &MainWindow::bleGo);
+    connect(this,           &MainWindow::sig_bleStat,    this, &MainWindow::slot_bleStat);
+    connect(this,           &MainWindow::sig_sqlGo,      this, &MainWindow::sqlGo);
+
     ui->actionBLE->setVisible(true);
     ui->actionBLE->setEnabled(true);
+    ui->actionBLE->setChecked(false);
+
+    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    connect(this, &MainWindow::sig_iniSql, this, &MainWindow::slot_iniSql);
+    connect(this, &MainWindow::sig_recsSql, this, &MainWindow::TotalRecords);
+
+    connect(this, &MainWindow::sig_getDevIndex, this, &MainWindow::getDevIndex);
+    connect(this, &MainWindow::sig_delRecDB, this, &MainWindow::delRecDB);
+
+    tmr_sql = startTimer(3000);// 3 msec.
+    if (tmr_sql <= 0) {
+        MyError |= 2;//start_timer error
+        throw TheError(MyError);
+    }
+
+    //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #else
     ui->actionBLE->setVisible(false);
 #endif
-
-    ui->log->setTextColor(Qt::blue);
 
 }
 //----------------------------------------------------------------------------------------
@@ -113,6 +147,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 MainWindow::~MainWindow()
 {
 #ifdef SET_BLUETOOTH
+    if (db.isOpen()) db.close();
+
     if (bleSocket) {
         bleSocket->disconnect();
         if (bleSocket->isOpen()) bleSocket->close();
@@ -147,16 +183,25 @@ void MainWindow::timerEvent(QTimerEvent *event)
             }
             ui->date_time->setText(" " + QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss"));
             ui->date_time->setToolTip("Текущая дата и время");
+            //
+            if (bleScan) {
+                tmr_ble_scan++;
+                emit sig_bleScan();
+            } else {
+                tmr_ble_scan = 0;
+            }
         }
+    }
+    else if (tmr_rst == event->timerId()) {
+        emit sig_rst_screen();
     }
 #ifdef SET_BLUETOOTH
     else if ((tmr_ble > 0) && (tmr_ble == event->timerId())) {
         emit sig_bleTimeOut();
+    } else if ((tmr_sql > 0) && (tmr_sql == event->timerId())) {
+        emit sig_iniSql();
     }
 #endif
-    else if (tmr_rst == event->timerId()) {
-        emit sig_rst_screen();
-    }
 
 }
 //-------------------------------------------------------------------------------------
@@ -167,10 +212,27 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     if (event->key() == Qt::Key_Return) emit sig_on_answer();
 }
 //--------------------------------------------------------------------------------
+void MainWindow::resizeEvent(QResizeEvent *event)
+{
+    if (event->size() == minimumSize()) {
+        if (tbl) {
+            ui->sql->resize(minWinSql);
+            tbl->resize(minWinSql);
+        }
+    } else {
+        if (tbl) {
+            ui->sql->resize(maxWinSql);
+            tbl->resize(maxWinSql);
+        }
+    }
+}
+//--------------------------------------------------------------------------------
 QString MainWindow::time2str()
 {
     return (QDateTime::currentDateTime().toString("dd.MM hh:mm:ss") + " | ");
 }
+//--------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------
 //         Error class
 //
@@ -178,6 +240,7 @@ MainWindow::TheError::TheError(int err)//error class descriptor
 {
     code = err;
 }
+//--------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------
 void MainWindow::clrLog()
@@ -220,6 +283,12 @@ void MainWindow::toStatusLine(QString st, int pic)
         break;
         case picOk:
             pix = ok_pic;
+        break;
+        case picDevOk:
+            pix = devOk_pic;
+        break;
+        case picDel:
+            pix = del_pic;
         break;
     }
 
@@ -287,11 +356,17 @@ void MainWindow::deinitSerial()
 //
 void MainWindow::About()
 {
-    QString st = QString(tr("\nСервисная программа для устройства\n'CO2_sensor' - STM32F411 + MQ135 + SI7021 + GC9A01"));
+    QString st = "\nСервисная программа для устройства '";
+    st.append(title);
+    st += "' -\nSTM32F411 + MQ135 + SI7021 + GC9A01";
+#ifdef SET_BLUETOOTH
+    st.append(" + JDY-25M");
+#endif
 
     st.append("\nВерсия " + qApp->applicationVersion() + tr(" ") + BUILD);
 
     QMessageBox box;
+
     box.setStyleSheet("background-color: rgb(208, 208, 208);");
     box.setIconPixmap(QPixmap(salara_pic));
     box.setText(st);
@@ -376,6 +451,8 @@ void MainWindow::on_disconnect()
 
 }
 //-----------------------------------------------------------------------
+//        Слот для обработки события 'restart' устройства
+//
 void MainWindow::rst_screen()
 {
     killTimer(tmr_rst);
@@ -389,27 +466,47 @@ void MainWindow::rst_screen()
 }
 //-----------------------------------------------------------------------
 //   Метод-слот осуществляет выдачу стоки данных на устройство
-//    через последовательный интерфейс
+//    через последовательный интерфейс UART
 //
 void MainWindow::slotWrite(QByteArray & mas)
 {
-    toStatusLine("", picClr);
+    if (sdev && con) {
+        toStatusLine("", picClr);
 
-    if (sdev) {
         QString m(mas);
-        if (m.indexOf("restart") != -1) {
+        sdev->write(m.toLocal8Bit());
 
-            tmr_rst = startTimer(3500);// 4 sec.
+        if (m.indexOf("restart") != -1) {
+#ifdef SET_BLUETOOTH
+            ui->device->clear();
+            ui->lab_device->clear();
+            ui->val_humi->clear();
+            ui->val_que->clear();
+            ui->val_temp->clear();
+#endif
+            tmr_rst = startTimer(3600);// 4 sec.
             if (tmr_rst <= 0) {
                 MyError |= 2;//start_timer error
                 throw TheError(MyError);
             }
-
         }
-        if (con) sdev->write(m.toLocal8Bit());
+#ifdef SET_BLUETOOTH
+        else if ((m.indexOf("at+") == 0) || (m.indexOf("AT+") == 0)) {
+            m = m.toUpper();
+            if ((m.indexOf("AT+RESET") == 0) || (m.indexOf("AT+RST") == 0)) {
+                if (ble_connect) {
+                    ui->lab_device->clear();
+                    ui->device->clear();
+                    emit sig_bleDone();
+                }
+            }
+        }
+#endif
     }
 }
-//-----------------------------------------------------------------------
+//-----------------------------------------------------------------------------------
+//          Слот для обработки события 'отправить данные на устроцство'
+//
 void MainWindow::on_answer()
 {
     QByteArray tmp = ui->cmd->text().toLocal8Bit();
@@ -419,7 +516,7 @@ void MainWindow::on_answer()
     if (tmp.length() >= 2) emit sigWrite(tmp);
 }
 //------------------------------------------------------------------------------------
-//  HEX string to BIN byte function
+//                   HEX string to BIN byte function
 //
 unsigned char MainWindow::myhextobin(const char *uk)
 {
@@ -432,8 +529,8 @@ unsigned char a = 0, b = 0, c = 0, i;
 
     return a;
 }
-//-----------------------------------------------------------------------
-//  Функция преобразует hex-строку в бинарный массив
+//-------------------------------------------------------------------------------------
+//         Функция преобразует hex-строку в бинарный массив
 //
 void MainWindow::hexTobin(const char *in, QByteArray *out)
 {
@@ -446,7 +543,7 @@ const char *uk = in;
         uk += 2;
     }
 }
-//-----------------------------------------------------------------------
+//------------------------------------------------------------------------------------
 //   Метод определения события "ответ получен" при приеме данных от устройства
 //
 int MainWindow::chkDone(QByteArray *buf)
@@ -471,6 +568,8 @@ QByteArray mas;
     return ret;
 }
 //-----------------------------------------------------------------------------------
+//      Функция выполняет парсер данных, полученных от устройства
+//
 void MainWindow::mkDataFromStr(QString str)
 {
 
@@ -480,6 +579,31 @@ void MainWindow::mkDataFromStr(QString str)
     float val = 0.0;
     QString tmp;
     bool ok = false;
+
+#ifdef SET_BLUETOOTH
+    bool yes = false;
+    for (int i = 0; i < MAX_BLE_STAT; i++) {
+        pos = str.indexOf(ble_stat[i], 0);
+        if (pos != -1) {
+            switch (i) {
+                case idConnect:
+                    ble_connect = true;
+                    yes = true;
+                break;
+                case idDisconnect:
+                    ble_connect = false;
+                    con_number = -1;
+                    yes = true;
+                break;
+            }
+        }
+        if (yes) break;
+    }
+    if (yes) {
+        emit sig_bleStat(ble_connect);
+        return;
+    }
+#endif
 
     pos = str.indexOf(" | [que:", 0); //0.00:09:20 | [que:1] MQ135: adc=903 ppm=320, SI7021: temp=23.59 humi=24.40
     if (pos != -1) {
@@ -543,22 +667,11 @@ void MainWindow::mkDataFromStr(QString str)
     }
 
     if (one.temp && one.humi && one.ppm) {
-        tmp.asprintf(" %.2f C", one.temp);
-        ui->val_temp->setText(tmp);
+        ui->val_temp->setText(tr(" %1 C").arg(one.temp));
         ui->val_temp->setToolTip("Температура (град.Цельсия)");
 
-        tmp.asprintf(" %.2f %%", one.humi);
-        ui->val_humi->setText(tmp);
+        ui->val_humi->setText(tr(" %1 %").arg(one.humi));
         ui->val_humi->setToolTip("Влажность (проценты)");
-
-        tmp.asprintf(" %.2f %%", one.co2);
-        QString attr = "{color: rgb(0, 95, 0); background-color: rgb(0, 95, 0);}";//GREEN
-        if ((one.ppm > 400.0) && (one.ppm < 600)) attr = "{color: rgb(0, 95, 0); background-color: rgb(255, 255, 0);}";//YELLOW
-        else
-        if ((one.ppm > 600.0) && (one.ppm < 1000)) attr = "{color: rgb(0, 95, 0); background-color: rgb(255, 0, 255);}";//MAGENTA;
-        else
-        if (one.ppm > 1000.0) attr = "{color: rgb(0, 95, 0); background-color: rgb(255, 0, 0);}";//RED;
-
 
         ui->val_que->setText(" " + QString::number(one.que, 10));
         ui->val_que->setToolTip("Количество сообщений в\nбуфере fifo устройства");
@@ -573,7 +686,9 @@ void MainWindow::mkDataFromStr(QString str)
         emit sig_grafic(msg_evt);
     }
 }
-//-----------------------------------------------------------------------
+//--------------------------------------------------------------------------------
+//             Слот приема данных от устройства
+//
 void MainWindow::ReadData()
 {
 int ix = -1;
@@ -602,7 +717,9 @@ int ix = -1;
     }
 
 }
-//-----------------------------------------------------------------------
+//---------------------------------------------------------------------------------
+//         Слот обработки ошибки при приеме данных от устройства
+//
 void MainWindow::slotError(QSerialPort::SerialPortError serialPortError)
 {
     if (serialPortError == QSerialPort::ReadError) {
@@ -610,6 +727,11 @@ void MainWindow::slotError(QSerialPort::SerialPortError serialPortError)
         throw TheError(MyError);
     }
 }
+//-----------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------
+//            Функции для формирования временных интервалов
+//
 //-----------------------------------------------------------------------------------
 uint32_t MainWindow::get10ms()
 {
@@ -625,7 +747,11 @@ int MainWindow::check_tmr(uint32_t tm)
 {
     return (get10ms() >= tm ? 1 : 0);
 }
-//----------------------------------------------------------------------
+//-----------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------
+//        функция выдачи данных на устройство (в последовательный порт UART)
+//
 int MainWindow::writes(const char *data, int len)
 {
 int ret = 0;
@@ -637,6 +763,8 @@ int ret = 0;
     return ret;
 }
 //-----------------------------------------------------------------------
+//      Слот для отправки данных эмулятору графического дисплея
+//
 void MainWindow::grafic(int cd)
 {
     if (graf) emit graf->sig_refresh((void *)&one, cd);
@@ -646,37 +774,300 @@ void MainWindow::grafic(int cd)
 #ifdef SET_BLUETOOTH
 
 //-----------------------------------------------------------------------
-//-------------------------   Bluetooth   -------------------------------
+//----------------------  Bluetooth functions  --------------------------
 //-----------------------------------------------------------------------
+//-----------------------------------------------------------------------
+//     Функция формирует строку из данных одной записи базы данных
+//
+QString MainWindow::rec2str(QSqlQuery *q)
+{
+    QString tp, tmp = " num:" + q->value(iNum).toString() + sep; //number
+    tmp += " name:'" + q->value(iName).toString() + "'" + sep; //s_name
+    tmp += " addr:" + QString::number(q->value(iAddr).toULongLong(), 16) + sep; //s_addr
+    tmp += " rssi:" + q->value(iRssi).toString() + sep; //s_rssi
+    bool good = false;
+    QDateTime td = QDateTime::fromTime_t(q->value(iTime).toUInt(&good));
+    if (good) {
+        tp = " epoch:'" + td.toString("dd.MM.yyyy hh:mm:ss") + "'";
+    }
+    tmp += tp + "\n";
 
+    return tmp;
+}
+//-----------------------------------------------------------------------
+//    Функция создает таблицу 'ble' в базе данных
+//
+void MainWindow::slot_iniSql()
+{
+    if (tmr_sql > 0) {
+        killTimer(tmr_sql);
+        tmr_sql = 0;
+    }
+    mk_table_db3 = "CREATE TABLE IF NOT EXISTS `" + db_tabl + "` (number INTEGER primary key autoincrement, " +
+        "s_name TEXT, s_addr INTEGER, s_rssi INTEGER, s_epoch TIMESTAMP);";
+    tbl_stat = "Sqlite3 data base '" + db_name + "' : ";
+    Qt::GlobalColor color = Qt::darkGreen;
+    db = QSqlDatabase::addDatabase("QSQLITE");
+    db.setDatabaseName(db_name);
+    openDB = db.open();
+    if (openDB) {// DB открыта, с ней можно работать
+        QSqlQuery query(db);
+        if (query.exec(mk_table_db3)) tbl_stat += "Table '"+ db_tabl + "' present !";
+                                else  tbl_stat += "Warning : " + query.lastError().text();
+        LogSave(time2str() + tbl_stat, color);
+
+        rec_count = TotalRecords();
+
+        tbl_stat = "Table '" + db_tabl + "' contain " + QString::number(rec_count, 10) + " records";
+    } else {
+        tbl_stat = "DB '" + db_name + "' not open !!!";
+        color = Qt::red;
+    }
+    LogSave(time2str() + tbl_stat, color);
+
+    if (rec_count > 0) {
+        //readAllDB();
+        getAllDB();
+        mkSqlTable();
+    }
+}
+//-----------------------------------------------------------------------
+//   Функция возвращает количество записей в таблице
+//           'ble' у базы данных 'ble_dev'
+//
+int MainWindow::TotalRecords()
+{
+int ret = 0;
+
+    if (openDB) {
+        QSqlQuery query(db);
+        if (query.exec("select count(*) from `" + db_tabl + "`;")) {
+            bool gd = false;
+            query.first();
+            ret = query.value(0).toInt(&gd);
+            if (!gd) ret = 0;
+        }
+    }
+
+    return ret;
+}
+//-----------------------------------------------------------------------
+int MainWindow::findByAddr(quint64 addr)
+{
+int ret = -1;
+
+    if (openDB) {
+        QString req = tr("SELECT * FROM `ble` WHERE s_addr=%1 order by number desc limit %2;").arg(addr).arg(rec_count);
+        QString tmp = "";
+        QSqlQuery query(db);
+        if (query.exec(req)) {
+            while (query.next()) {
+                bool good = false;
+                quint64 adr = query.value(iAddr).toULongLong(&good);
+                if (good) {
+                    if (adr == addr) {
+                        ret = query.value(iNum).toInt();
+                        tmp = " Num:" + QString::number(ret, 10) + sep +
+                              " Addr:" + QString::number(addr, 16) +
+                              " Name:'" + query.value(iName).toString() + "' <- device already PRESENT";
+                        break;
+                    }
+                }
+            }
+        }
+        if (tmp.length()) {
+            toStatusLine(tmp, picInfo);
+            LogSave(time2str() + tmp, Qt::darkGreen);
+        }
+    }
+
+    return ret;
+}
+//-----------------------------------------------------------------------
+void MainWindow::readAllDB()
+{
+    if (!rec_count || !openDB) return;
+
+    QString req = tr("SELECT * FROM `ble` order by number desc limit %1;").arg(rec_count);
+    QString tmp = "";
+    int cnt = 0;
+    QSqlQuery query(db);
+    if (query.exec(req)) {
+        while (query.next()) {
+            cnt++;
+            tmp += "[" + QString::number(cnt, 10) + "]"+ sep + rec2str(&query);
+        }
+        tmp += "Total records: " + QString::number(cnt, 10);
+        LogSave(time2str() + tmp, Qt::darkGreen);
+    } else {
+        LogSave(time2str() + "Error reading from DB -> " + query.lastError().text(), Qt::red);
+    }
+
+}
+//--------------------------------------------------------------------------------
+int MainWindow::getAllDB()
+{
+    if (!rec_count || !openDB) return 0;
+
+    rec_list.clear();
+    QString req = tr("SELECT * FROM `ble` order by number desc limit %1;").arg(rec_count);
+    get_recs_t rc;
+    QSqlQuery query(db);
+    if (query.exec(req)) {
+        while (query.next()) {
+            memset(&rc, 0, sizeof(get_recs_t));
+            rc.number = query.value(iNum).toInt();
+            QByteArray mas(query.value(iName).toString().trimmed().toLocal8Bit());
+            int len = mas.length();
+            if (len > MAX_REC_LEN - 1) len = MAX_REC_LEN - 1;
+            memcpy(rc.name, mas.data(), len);
+            rc.addr = query.value(iAddr).toULongLong();
+            rc.rssi = query.value(iRssi).toInt();
+            rc.epoth = query.value(iTime).toUInt();
+            rec_list << rc;
+        }
+    }
+
+    return rec_list.length();
+}
+//--------------------------------------------------------------------------------
+void MainWindow::delRecDB(const int nr)
+{
+bool good = false;
+int newr = 0;
+int cnt = rec_count;
+
+    if (openDB) {
+        QSqlQuery query(db);
+        QString tp = tr("DELETE FROM `ble` WHERE number=%1;").arg(nr);
+        if (query.exec(tp)) {
+            if (query.exec("SELECT * FROM `" + db_tabl + "` order by number desc limit 1;")) {
+                while (query.next()) {
+                    good = false;
+                    newr = query.value(iNum).toInt(&good);
+                    break;
+                }
+            }
+            rec_count = TotalRecords();
+            tp = "From DB: Record #" + QString::number(nr, 10) + " delete ";
+            if ((rec_count + 1) == cnt) {//record delete OK
+                tp += "OK.";
+            } else {
+                tp += "Error.";
+            }
+            tp += " Total records:" + QString::number(rec_count, 10);
+            LogSave(time2str() + tp, Qt::darkGreen);
+
+            getAllDB();
+            mkSqlTable();
+        }
+    }
+}
+//-----------------------------------------------------------------------
+bool MainWindow::insToDB(get_recs_t *rec)
+{
+bool ret = false;
+int cnt = rec_count;
+
+    if (openDB) {
+        QString tmp = tr("INSERT INTO `ble` (s_name, s_addr, s_rssi, s_epoch) VALUES ('%1', %2, %3, %4);")
+                     .arg(rec->name).arg(rec->addr).arg(rec->rssi).arg(rec->epoth);
+        QString tp = " Insert to table '" + db_tabl + "' device '" + rec->name + "' with index #";
+        QSqlQuery query(db);
+        if (query.exec(tmp)) {
+            if (query.exec("select * from `" + db_tabl + "` order by number desc limit 1;")) {
+                while (query.next()) {
+                    tp += query.value(iNum).toString();;
+                    break;
+                }
+            }
+            ret = true;
+        } else {
+            tp += " Error:" + query.lastError().text();
+        }
+
+        rec_count = TotalRecords();
+        if (rec_count == (cnt + 1)) {
+            tp += " OK.";
+        } else {
+            tp += " Error.";
+        }
+        tp += " | Total records: " + QString::number(rec_count, 10);
+        LogSave(time2str() + tp, Qt::darkGreen);
+    }
+
+    return ret;
+}
+//-----------------------------------------------------------------------
+void MainWindow::mkRecDB(const QBluetoothDeviceInfo *info, get_recs_t *rc)
+{
+    rc->number = 0;
+
+    QByteArray mas(info->name().trimmed().toLocal8Bit());
+    strncpy(rc->name, mas.data(), MAX_REC_LEN - 1);
+
+    rc->addr = info->address().toUInt64();
+
+    rc->rssi = info->rssi();
+
+    rc->epoth = QDateTime::currentDateTimeUtc().toTime_t();
+}
+//-----------------------------------------------------------------------
+void MainWindow::slot_bleStat(bool stat)
+{
+    if (!stat) {
+        ui->device->clear();
+        ui->lab_device->clear();
+        ui->lab_device->setToolTip("");
+
+        emit sig_bleDone();
+    } else {
+        ui->lab_device->setPixmap(QPixmap(net32_pic));
+        if ((index >= 0) && (rec_list.size())) {
+            ui->device->setText(bleDevNameAddr);
+            ui->lab_device->setToolTip("Connected to " + bleDevNameAddr);
+        }
+    }
+}
+//-----------------------------------------------------------------------
+void MainWindow::slot_bleScan()
+{
+    if (bleScan) bleScan->setValue(tmr_ble_scan);
+}
+//-----------------------------------------------------------------------
 void MainWindow::beginBle()
 {
+
+    if (ble_proc) {
+        ui->actionBLE->setChecked(true);
+        return;
+    }
+    ble_proc = true;
+
     ui->actionBLE->setChecked(true);
     ui->log->setEnabled(true);
 
-
     list.clear();
     index = -1;
-    bleWin = nullptr;
 
     bleFind = false;
     bleDevStr.clear();
     bleAddrStr.clear();
     bleDevNameAddr.clear();
-    //
 
     if (localDevice) {
         delete localDevice;
         localDevice = nullptr;
     }
+
     localDevice = new QBluetoothLocalDevice(this);
     if (localDevice->isValid()) {
         localDevice->powerOn();
-        //localDevice->setHostMode(QBluetoothLocalDevice::HostDiscoverable);
-        localDevice->setHostMode(QBluetoothLocalDevice::HostConnectable);
-        LogSave("\n" + time2str() + "Local bluetooth device: " + localDevice->name() +
+        localDevice->setHostMode(QBluetoothLocalDevice::HostDiscoverable);
+        //localDevice->setHostMode(QBluetoothLocalDevice::HostConnectable);
+        LogSave(time2str() + "Local bluetooth device: " + localDevice->name() +
                 " (" + localDevice->address().toString().trimmed() + ")", Qt::blue);
-        //
+
         if (discoveryAgent) {
             discoveryAgent->disconnect();
             delete discoveryAgent;
@@ -688,6 +1079,9 @@ void MainWindow::beginBle()
             connect(discoveryAgent, &QBluetoothDeviceDiscoveryAgent::finished,         this, &MainWindow::bleDiscoverFinished);
             connect(discoveryAgent, &QBluetoothDeviceDiscoveryAgent::canceled,         this, &MainWindow::bleDiscoverFinished);
             //connect(discoveryAgent, &QBluetoothDeviceDiscoveryAgent::deviceDiscovered, this, &MainWindow::bleAddDevice);
+
+            //discoveryAgent->setInquiryType(QBluetoothDeviceDiscoveryAgent::GeneralUnlimitedInquiry);//LimitedInquiry);
+
 #ifdef SET_BLE_DEVICE
             discoveryAgent->setLowEnergyDiscoveryTimeout(tmr_ble_wait);
             connect(discoveryAgent,
@@ -697,12 +1091,38 @@ void MainWindow::beginBle()
             discoveryAgent->start(QBluetoothDeviceDiscoveryAgent::LowEnergyMethod);
 #else
             discoveryAgent->start();
+            tmr_ble = startTimer(tmr_ble_wait << 1);// wait connection 10 sec.
+            if (tmr_ble <= 0) {
+                MyError |= 2;//start_timer error
+                throw TheError(MyError);
+            }
 #endif
+            //
+            if (bleScan) {
+                delete bleScan;
+                bleScan = nullptr;
+            }
+            bleScan = new QProgressBar(this);
+            if (bleScan) {
+                tmr_ble_scan = 0;
+                QRect rr = this->geometry();
+                int w = 350, h = 26;//50;//56;
+                bleScan->setRange(0, tmr_ble_wait / 1000);
+                bleScan->setValue(0);
+                bleScan->resize(w, h);
+                bleScan->move(rr.width()/2 - (w >> 1), rr.height()/2 - (h >> 1) + 3);
+                bleScan->setStyleSheet("*::chunk {background-color: blue; border-radius: 4;}");
+                bleScan->setAlignment(Qt::AlignCenter);
+                connect(this, &MainWindow::sig_bleScan, this, &MainWindow::slot_bleScan);
+                bleScan->show();
+            }
+            //
         } else LogSave(time2str() + "Error create QBluetoothDeviceDiscoveryAgent !", Qt::blue);
     } else LogSave(time2str() + "Bluetooth is not available on this device", Qt::blue);
 
 }
 //-----------------------------------------------------------------------
+/*
 void MainWindow::bleAddDevice(const QBluetoothDeviceInfo & param)
 {
 #ifdef SET_BLE_DEVICE
@@ -731,6 +1151,7 @@ void MainWindow::bleAddDevice(const QBluetoothDeviceInfo & param)
 
     }
 }
+*/
 //-----------------------------------------------------------------------
 void MainWindow::bleScanError(QBluetoothDeviceDiscoveryAgent::Error er)
 {
@@ -744,8 +1165,16 @@ void MainWindow::bleDiscoverFinished()
     QString st = "Device discover finished";
     LogSave(time2str() + st, Qt::blue);
     //
-    //QList<QBluetoothDeviceInfo>ls;
-    //ls.clear();
+#ifndef SET_BLE_DEVICE
+    if (tmr_ble) {
+        killTimer(tmr_ble);
+        tmr_ble = 0;
+    }
+#endif
+    /*
+    QList<QBluetoothDeviceInfo>ls;
+    ls.clear();
+    */
     list.clear();
     list = discoveryAgent->discoveredDevices();
     discoveryAgent->disconnect();
@@ -768,7 +1197,9 @@ void MainWindow::bleDiscoverFinished()
     if (!list.isEmpty()) {
         //list.clear();
         //list = ls;
-        emit sig_bleGo();
+        index = -1;
+        emit sig_sqlGo();
+        //emit sig_bleGo();
     } else {
         emit sig_bleDone();
     }
@@ -776,8 +1207,6 @@ void MainWindow::bleDiscoverFinished()
 //-----------------------------------------------------------------------
 void MainWindow::slot_bleDone()
 {
-
-    LogSave(time2str() + "BLE done processing.", Qt::blue);
 
     if (tmr_ble > 0) {
         killTimer(tmr_ble);
@@ -793,22 +1222,21 @@ void MainWindow::slot_bleDone()
 
     index = -1;
     list.clear();
-    if (bleWin) {
-        delete bleWin;
-        bleWin = nullptr;
-    }
 
-    //if (!con) ui->log->setEnabled(false);
     ui->actionBLE->setChecked(false);
 
+    ble_proc = false;
 }
 //-----------------------------------------------------------------------
 void MainWindow::slot_bleTimeOut()
 {
-    killTimer(tmr_ble);
-    tmr_ble = 0;
+    if (tmr_ble > 0) {
+        killTimer(tmr_ble);
+        tmr_ble = 0;
+    }
 
-    QPixmap pm(war_pic);
+    if (ble_connect) return;
+
     QString st = "No selected bluetooth device !";
     if (index >= 0) st = "Timeout connect to device " + bleDevNameAddr;
     toStatusLine(st, picWar);
@@ -821,16 +1249,21 @@ void MainWindow::slot_bleTimeOut()
 //-----------------------------------------------------------------------
 void MainWindow::getDevIndex(int ix)
 {
-    index = ix;
+    if (ix < 0) return;
+
+    int i = -1;
+    while (++i < rec_list.length()) {
+        if (ix == rec_list.at(i).number) {
+            index = i;
+        }
+    }
+
     if (index >= 0) {
         bleFind = true;
-        infoDev = list.at(index);
-        bleDevNameAddr = infoDev.name().trimmed() + " (" + infoDev.address().toString().trimmed() + ")";
-
-        if (bleWin) {
-            delete bleWin;
-            bleWin = nullptr;
-        }
+        infoDev = rec_list.at(index);
+        bleAddr = (QBluetoothAddress)infoDev.addr;
+        bleDevNameAddr = QString(infoDev.name) + " (" + QString::number(infoDev.addr, 16) + ")";
+        con_number = ix;
 
         emit sig_bleGo();
     } else {
@@ -838,25 +1271,200 @@ void MainWindow::getDevIndex(int ix)
     }
 }
 //-----------------------------------------------------------------------
-void MainWindow::bleGo()
+void MainWindow::mkSqlTable()
 {
-    //
-    if (list.size() && (index < 0)) {
-        if (!bleWin) {
-            bleWin = new bleDialog(this);
-            if (bleWin) {
-                bleWin->addDev(&list);
-                bleWin->show();
-                connect(bleWin, &bleDialog::sig_sndSelInd, this, &MainWindow::getDevIndex);
-                tmr_ble = startTimer(60000);// wait connection 5 sec.
-                if (tmr_ble <= 0) {
-                    MyError |= 2;//start_timer error
-                    throw TheError(MyError);
-                }
+    if (!rec_list.length()) return;
+
+    if (tbl) {
+        tbl->hide();
+        delete tbl;
+        tbl = nullptr;
+    }
+
+    if (!tbl) {
+        QRect rr = ui->sql->geometry();
+        QPalette pal = QPalette(ui->sql->palette());
+        QFont font = QFont(ui->sql->font());
+
+        tbl = new QTableWidget(ui->sql);// создаем саму таблицу
+        if (tbl) {
+            tbl->setFont(font);
+            tbl->setPalette(pal);
+            tbl->resize(rr.width(), rr.height());
+            tbl->setRowCount(rec_list.length());//количество строк
+            tbl->setColumnCount(iTime + 1); //5 - количество столбцов
+            //
+            int row, column;
+            get_recs_t rc;
+            QStringList lst;
+            lst << tr("ID") << tr("NAME") << tr("ADDR") << tr("RSSI") << tr("TIME");
+            for (column = 0; column < tbl->columnCount(); column++) {
+                tbl->setHorizontalHeaderLabels(lst);
             }
+            tbl->setSortingEnabled(true);
+            tbl->resizeRowsToContents();
+            for (row = 0; row < tbl->rowCount(); row++) {
+                tbl->resizeColumnsToContents();
+                rc = rec_list.at(row);
+                lst.clear();
+                lst << QString::number(rc.number, 10)
+                    << QString(rc.name)
+                    << QString::number(rc.addr, 16).toUpper()
+                    << QString::number(rc.rssi)
+                    << QDateTime::fromTime_t(rc.epoth).toString(dt_fmt);
+                for (column = 0; column < tbl->columnCount(); column++) {
+                    itItem *item = new itItem;
+                    item->setText(lst.at(column));
+                    item->setTextAlignment(Qt::AlignCenter);
+                    item->setToolTip(tr("Для сортировки по столбцу\nкликните мышкой по заголовку столбца"));
+                    tbl->setItem(row, column, item);
+                }
+                tbl->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+            }
+            ui->sql->minimumSize();
+            tbl->minimumSize();
+            connect(tbl->horizontalHeader(), SIGNAL(sectionClicked(int)), this, SLOT(colSort(int)));
+            connect(tbl->verticalHeader(), SIGNAL(sectionClicked(int)), this, SLOT(tblContextMenu(int)));
+            //
+            tbl->show();
         }
     }
-    //
+}
+//-----------------------------------------------------------------------
+void MainWindow::tblContextMenu(int row)//const QPoint& pos)
+{
+        QRect rt = tbl->geometry();
+
+        int hig = 10;
+        QPoint pos(rt.x() + (hig << 1), rt.y() + (hig * row));
+
+        QMenu *menu = new QMenu(nullptr);
+        if (menu) {
+            selRow = row;
+            QAction *selDevice = new QAction(QIcon(devOk_pic), "Select", tbl);
+            QAction *delDevice = new QAction(QIcon(del_pic), "Delete", tbl);
+            connect(selDevice, SIGNAL(triggered()), this, SLOT(slotSelRecord()));
+            connect(delDevice, SIGNAL(triggered()), this, SLOT(slotDelRecord()));
+            menu->addAction(selDevice);
+            menu->addAction(delDevice);
+            menu->popup(tbl->viewport()->mapToGlobal(pos));
+            menu->show();
+        }
+}
+//-----------------------------------------------------------------------
+void MainWindow::slotSelRecord()
+{
+    int row = tbl->selectionModel()->currentIndex().row();
+    if (row < 0) return;
+
+    QString snum = tbl->item(row, iNum)->text();
+    bool good = false;
+    int num = snum.toInt(&good, 10);
+    if (!good) num = -1;
+
+    snum = QString::number(row + 1, 10) + " (num=" + QString::number(num, 10) + ")";
+    toStatusLine("Selected record by index #" + snum, picDevOk);
+
+#ifdef SET_DEBUG
+    qDebug() << "Selected record by index #" + snum;
+#endif
+
+    if (!ble_connect) {
+        emit sig_getDevIndex(num);//row);
+    } else {
+        QMessageBox::warning(this, tr("Установить соединение"), tr("Соединение уже установлено c\n'") + ui->device->text() + "'", QMessageBox::Ok);
+    }
+}
+//-----------------------------------------------------------------------
+void MainWindow::slotDelRecord()
+{
+    int row = tbl->selectionModel()->currentIndex().row();
+    if (row < 0) return;
+
+    QString snum = tbl->item(row, iNum)->text();
+    bool good = false;
+    int num = snum.toInt(&good, 10);
+    if (!good) {
+        toStatusLine(tr("Индекс записи ошибочный - операция невозможна"), picErr);
+        return;
+    }
+
+    if (ble_connect) {
+        if (con_number == num) {
+            QMessageBox::warning(this, tr("Удаление записи"), tr("Удаление невозможною\nУстройство '") + ui->device->text() + "' занято !", QMessageBox::Ok);
+            return;
+        }
+    }
+
+    snum = QString::number(row + 1, 10) + " (num=" + QString::number(num, 10) + ")" + " con_number=" + QString::number(con_number, 10);
+
+    if (QMessageBox::warning(this,
+                             tr("Удаление записи"),
+                             tr("Вы уверены, что хотите удалить эту запись?"),
+                             QMessageBox::Yes | QMessageBox::No) == QMessageBox::No) {
+        toStatusLine("Cancel delete record by index #" + snum, picWar);
+
+#ifdef SET_DEBUG
+    qDebug() << "Cancel delete record by index #" + snum;//QString::number(row + 1, 10) + " (num=" + QString::number(num, 10) + ")";
+#endif
+
+    } else {
+        toStatusLine("Delete record by index #" + snum + " confirm OK.", picDel);
+
+#ifdef SET_DEBUG
+    qDebug() << "Delete record by index #" + snum + " confirm OK.";
+#endif
+
+        emit sig_delRecDB(num);// <- delete record
+
+    }
+}
+//-----------------------------------------------------------------------
+void MainWindow::colSort(int c)
+{
+    static Qt::SortOrder dir = Qt::SortOrder::AscendingOrder;
+    tbl->sortByColumn(c, dir);
+    if (dir == Qt::SortOrder::AscendingOrder)
+        dir = Qt::SortOrder::DescendingOrder;
+    else
+        dir = Qt::SortOrder::AscendingOrder;
+}
+//-----------------------------------------------------------------------
+void MainWindow::sqlGo()
+{
+    //------------   Stop progress bar   ------------
+    if (bleScan) {
+        delete bleScan;
+        bleScan = nullptr;
+    }
+    ui->actionBLE->setChecked(false);
+    ble_proc = false;
+    //-----------------------------------------------
+    if (list.size()) {
+        if (openDB) {
+            rec_list.clear();
+            get_recs_t rc;
+            int ix = -1;
+            while (++ix < list.size()) {
+                if (findByAddr(list.at(ix).address().toUInt64()) == -1) {//запись с таким mac-адресом отсутствует в базе
+                    mkRecDB(&list.at(ix), &rc);
+                    if (insToDB(&rc)) {
+                        rec_list << rc;
+                    }
+                }
+            }
+            //------------ Create table with bluetooth devices ---------
+            if (rec_list.length() > 0) {
+                getAllDB();
+                mkSqlTable();
+            }
+            //----------------------------------------------------------
+        }
+    }
+}
+//-----------------------------------------------------------------------
+void MainWindow::bleGo()
+{
     if (index < 0) return;
     //
     if (bleSocket) {
@@ -867,26 +1475,36 @@ void MainWindow::bleGo()
     //
     QString st;
     int pf = picErr;
-
-    //QBluetoothRfcommSocket bs;
-
-    bleSocket = new QBluetoothSocket(QBluetoothServiceInfo::RfcommProtocol);
+    //
+    bleSocket = new QBluetoothSocket(QBluetoothServiceInfo::RfcommProtocol, this);
     if (bleSocket) {
         blePack.clear();
+        //
+        // "{FDA50693A4E24FB1AFCFC6EB07647825}" {00000000-0000-0000-0000-000000000000}
+        // Service UUID: FFE0  (Service UUID）
+        // Service UUID: FFE1  (Used for transparent transmission)
+        // Service UUID: FFE2  (Used for transparent transmission)
+        // Service UUID: FFE3  (MESH data receiving and sending, MESH instruction receiving and sending, APP control IO, parameter configuration)
+        //
         //QBluetoothUuid uuid(tr("FFE0--0000-1000-8000-00805F9B34FB"));//"{0000110E-0000-1000-8000-00805F9B34FB}"; // UUID of the 'A/V Remote Control' service
-        QBluetoothUuid uuid = QBluetoothUuid(QBluetoothUuid::SerialPort);
+        //QBluetoothUuid uuid(tr("18010000-0000-0000-0000-000000000000"));// QBluetoothUuid::ServiceClassUuid::GenericAttribute=0x1801
+        //QBluetoothUuid uuid(tr("18000000-0000-0000-0000-000000000000"));// QBluetoothUuid::ServiceClassUuid::GenericAccess=0x1800
+        //QBluetoothUuid uuid(tr("11010000-0000-0000-0000-000000000000"));// QBluetoothUuid::SerialPort = 4353
         /*
-        if (localDevice->pairingStatus(infoDev.address()) != QBluetoothLocalDevice::Paired) {
-            localDevice->requestPairing(infoDev.address(), QBluetoothLocalDevice::Paired);
-        }
-        */
-        bleSocket->connectToService(infoDev.address(), uuid, QIODevice::ReadWrite);
-        //bleSocket->connectToService(infoDev.address(), QIODevice::ReadWrite);
+        socket = new QBluetoothSocket(QBluetoothSocket::RfcommSocket, this);
+        socket->connectToService(QBluetoothAddress(selectedDevice.address()), QBluetoothUuid(QBluetoothUuid::SerialPort));
 
-        //bleSocket->open(QIODevice::ReadWrite);
+        connect(socket, SIGNAL(error(QBluetoothSocket::SocketError)), this, SLOT(socketError(QBluetoothSocket::SocketError)));
+        connect(socket, SIGNAL(connected()), this, SLOT(socketConnected()));
+        connect(socket, SIGNAL(disconnected()), this, SLOT(socketDisconnected()));
+        connect(socket, SIGNAL(readyRead()), this, SLOT(socketRead()));
+        */
+        QBluetoothUuid uuid(QBluetoothUuid::SerialPort);
+        bleSocket->connectToService(bleAddr, uuid, QIODevice::ReadWrite);
+        //bleSocket->connectToService(QBluetoothAddress(infoDev.address()), QBluetoothUuid(QBluetoothUuid::SerialPort), QIODevice::ReadWrite);
 
         connect(bleSocket, SIGNAL(error(QBluetoothSocket::SocketError)), this, SLOT(bleSocketError(QBluetoothSocket::SocketError)));
-        connect(bleSocket, SIGNAL(stateChanged(QBluetoothSocket::SocketState)), this, SLOT(bleSocketStateChanged()));
+        connect(bleSocket, &QBluetoothSocket::stateChanged, this, &MainWindow::bleSocketStateChanged);
         connect(bleSocket, &QBluetoothSocket::connected, this, &MainWindow::bleSocketConnected);
         connect(bleSocket, &QBluetoothSocket::disconnected, this, &MainWindow::slot_bleDone);
         connect(bleSocket, &QBluetoothSocket::readyRead, this, &MainWindow::bleSocketRead);
@@ -894,12 +1512,11 @@ void MainWindow::bleGo()
         st = "Wait connect to device '" + bleDevNameAddr + "'  " + QString::number(tmr_ble_wait / 1000, 10) + " sec...";
         pf = picInfo;
 
-        /*tmr_ble = 0;
-        tmr_ble = startTimer(tmr_ble_wait);// wait connection 5 sec.
+        tmr_ble = startTimer(tmr_ble_wait);// wait connection 10 sec.
         if (tmr_ble <= 0) {
             MyError |= 2;//start_timer error
             throw TheError(MyError);
-        }*/
+        }
         /*
         if (localDevice->pairingStatus(infoDev.address()) != QBluetoothLocalDevice::Paired) {
             localDevice->requestPairing(infoDev.address(), QBluetoothLocalDevice::Paired);
@@ -916,6 +1533,7 @@ void MainWindow::bleGo()
 void MainWindow::bleSocketStateChanged()
 {
     QString st = "";
+
     switch ((int)bleSocket->state()) {
         case QAbstractSocket::UnconnectedState:
             st = "unconnected";
@@ -963,6 +1581,12 @@ void MainWindow::bleSocketError(QBluetoothSocket::SocketError bleErr)
 //-----------------------------------------------------------------------
 void MainWindow::bleSocketConnected()
 {
+    if (tmr_ble > 0) {
+        killTimer(tmr_ble);
+        tmr_ble = 0;
+        //disconnect(this, &MainWindow::sig_bleTimeOut, this, &MainWindow::slot_bleTimeOut);
+    }
+
     ble_connect = true;
 
     toStatusLine("Connection to device " + bleSocket->peerName(), picCon);
@@ -971,7 +1595,7 @@ void MainWindow::bleSocketConnected()
 void MainWindow::bleSocketRead()
 {
 
-    if (!bleSocket || !ble_connect) return;
+//    if (!bleSocket || !ble_connect) return;
 
     blePack += bleSocket->readAll();
 
@@ -989,7 +1613,7 @@ void MainWindow::bleSocketRead()
             jsMode = false;
         }
 
-        LogSave(line, Qt::blue);
+        LogSave("ble: " + line, Qt::green);
         if (blePack.length() >= (ix + 1)) blePack.remove(0, ix);
                                      else blePack.clear();
         //

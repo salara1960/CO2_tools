@@ -2,23 +2,27 @@
 #define WIDGET_H
 
 #include <QWidget>
+/*
+    Класс для создания эмулятора круглого дисплея IPS GC9A01
+*/
+
 #include <QPainter>
 #include <QTextItem>
+#include <QString>
 
 #include "defs.h"
 
+//---------------------------------------------------------------------
 
 #define MAX_COLOR 8
 
-
-//QT_BEGIN_NAMESPACE
+//---------------------------------------------------------------------
 
 namespace Ui {
     class itWidget;
 }
 
-//QT_END_NAMESPACE
-
+//---------------------------------------------------------------------
 class itWidget : public QWidget
 {
     Q_OBJECT
@@ -35,8 +39,6 @@ public slots:
     void refresh(void *, int);
     void sec2str(QString *, uint32_t);
 
-//private slots:
-//    void refresh();
 signals:
     void sig_refresh(void *, int);
 
@@ -57,6 +59,7 @@ private:
     };
 
 };
+//---------------------------------------------------------------------
 
 
 #endif // WIDGET_H
