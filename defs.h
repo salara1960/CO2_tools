@@ -19,7 +19,7 @@
 //***********************************************************************************
 
 
-#define SET_DEBUG
+//#define SET_DEBUG
 
 #define SET_BLUETOOTH
 #ifdef SET_BLUETOOTH

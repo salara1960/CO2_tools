@@ -4,13 +4,7 @@
 #include "mainwindow.h"
 //******************************************************************************************************
 
-qint32 serSpeed = 230400;//115200;
-
-#ifdef SET_BLUETOOTH
-
-
-
-#endif
+qint32 serSpeed = 230400;
 
 //******************************************************************************************************
 
@@ -155,7 +149,15 @@ MainWindow::~MainWindow()
         delete bleSocket;
         bleSocket = nullptr;
     }
-    //slot_bleDone();
+
+    if (tmr_ble) {
+        killTimer(tmr_ble);
+        tmr_ble = 0;
+    }
+    if (tbl) {
+        delete tbl;
+        tbl = nullptr;
+    }
 #endif
 
     deinitSerial();
@@ -196,8 +198,8 @@ void MainWindow::timerEvent(QTimerEvent *event)
         emit sig_rst_screen();
     }
 #ifdef SET_BLUETOOTH
-    else if ((tmr_ble > 0) && (tmr_ble == event->timerId())) {
-        emit sig_bleTimeOut();
+    else if (tmr_ble == event->timerId()) {
+        if (tmr_ble > 0) emit sig_bleTimeOut();
     } else if ((tmr_sql > 0) && (tmr_sql == event->timerId())) {
         emit sig_iniSql();
     }
@@ -668,13 +670,13 @@ void MainWindow::mkDataFromStr(QString str)
 
     if (one.temp && one.humi && one.ppm) {
         ui->val_temp->setText(tr(" %1 C").arg(one.temp));
-        ui->val_temp->setToolTip("Температура (град.Цельсия)");
+        ui->val_temp->setToolTip(tr("Температура (град.Цельсия)"));
 
         ui->val_humi->setText(tr(" %1 %").arg(one.humi));
-        ui->val_humi->setToolTip("Влажность (проценты)");
+        ui->val_humi->setToolTip(tr("Влажность (проценты)"));
 
         ui->val_que->setText(" " + QString::number(one.que, 10));
-        ui->val_que->setToolTip("Количество сообщений в\nбуфере fifo устройства");
+        ui->val_que->setToolTip(tr("Количество сообщений в\nбуфере fifo устройства"));
 
         tmp = tr("Queue: %1  Sensors: %2%3 C  %4%5 %  %6%7  CO2=%8 %")
                 .arg(one.que)
@@ -804,13 +806,13 @@ void MainWindow::slot_iniSql()
         tmr_sql = 0;
     }
     mk_table_db3 = "CREATE TABLE IF NOT EXISTS `" + db_tabl + "` (number INTEGER primary key autoincrement, " +
-        "s_name TEXT, s_addr INTEGER, s_rssi INTEGER, s_epoch TIMESTAMP);";
+                   "s_name TEXT, s_addr INTEGER, s_rssi INTEGER, s_epoch TIMESTAMP);";
     tbl_stat = "Sqlite3 data base '" + db_name + "' : ";
     Qt::GlobalColor color = Qt::darkGreen;
     db = QSqlDatabase::addDatabase("QSQLITE");
     db.setDatabaseName(db_name);
     openDB = db.open();
-    if (openDB) {// DB открыта, с ней можно работать
+    if (openDB) {
         QSqlQuery query(db);
         if (query.exec(mk_table_db3)) tbl_stat += "Table '"+ db_tabl + "' present !";
                                 else  tbl_stat += "Warning : " + query.lastError().text();
@@ -826,8 +828,7 @@ void MainWindow::slot_iniSql()
     LogSave(time2str() + tbl_stat, color);
 
     if (rec_count > 0) {
-        //readAllDB();
-        getAllDB();
+        getAllDB();//readAllDB();
         mkSqlTable();
     }
 }
@@ -933,21 +934,13 @@ int MainWindow::getAllDB()
 //--------------------------------------------------------------------------------
 void MainWindow::delRecDB(const int nr)
 {
-bool good = false;
-int newr = 0;
 int cnt = rec_count;
 
     if (openDB) {
         QSqlQuery query(db);
         QString tp = tr("DELETE FROM `ble` WHERE number=%1;").arg(nr);
         if (query.exec(tp)) {
-            if (query.exec("SELECT * FROM `" + db_tabl + "` order by number desc limit 1;")) {
-                while (query.next()) {
-                    good = false;
-                    newr = query.value(iNum).toInt(&good);
-                    break;
-                }
-            }
+            //
             rec_count = TotalRecords();
             tp = "From DB: Record #" + QString::number(nr, 10) + " delete ";
             if ((rec_count + 1) == cnt) {//record delete OK
@@ -1078,9 +1071,6 @@ void MainWindow::beginBle()
             LogSave(time2str() + "Start discovery bluetooth devices...", Qt::blue);
             connect(discoveryAgent, &QBluetoothDeviceDiscoveryAgent::finished,         this, &MainWindow::bleDiscoverFinished);
             connect(discoveryAgent, &QBluetoothDeviceDiscoveryAgent::canceled,         this, &MainWindow::bleDiscoverFinished);
-            //connect(discoveryAgent, &QBluetoothDeviceDiscoveryAgent::deviceDiscovered, this, &MainWindow::bleAddDevice);
-
-            //discoveryAgent->setInquiryType(QBluetoothDeviceDiscoveryAgent::GeneralUnlimitedInquiry);//LimitedInquiry);
 
 #ifdef SET_BLE_DEVICE
             discoveryAgent->setLowEnergyDiscoveryTimeout(tmr_ble_wait);
@@ -1117,41 +1107,13 @@ void MainWindow::beginBle()
                 bleScan->show();
             }
             //
-        } else LogSave(time2str() + "Error create QBluetoothDeviceDiscoveryAgent !", Qt::blue);
-    } else LogSave(time2str() + "Bluetooth is not available on this device", Qt::blue);
-
-}
-//-----------------------------------------------------------------------
-/*
-void MainWindow::bleAddDevice(const QBluetoothDeviceInfo & param)
-{
-#ifdef SET_BLE_DEVICE
-    if (!(param.coreConfigurations() & QBluetoothDeviceInfo::LowEnergyCoreConfiguration)) return;
-#endif
-    if (!bleFind) {
-        QString st;
-        if (param.name().indexOf(bleRemoteMarker) != -1) {
-            st = bleRemoteMarker + " bluetooth device found : " + param.name() + " (" + param.address().toString() + ")";
-            if (param.address().toString() == bleRemoteMac) {
-                discoveryAgent->disconnect();
-                discoveryAgent->stop();
-                infoDev = param;
-                bleDevStr = infoDev.name().trimmed();
-                bleAddrStr = infoDev.address().toString().trimmed();
-                bleDevNameAddr = bleDevStr +
-                        " (" + bleAddrStr +
-                        ") rssi: " + QString::number(infoDev.rssi(), 10);
-                bleFind = true;
-            }
-            toStatusLine(st, picInfo);
-            LogSave(time2str() + st, Qt::blue);
+        } else {
+            LogSave(time2str() + "Error create QBluetoothDeviceDiscoveryAgent !", Qt::blue);
         }
-
-        if (bleFind) emit sig_bleGo();
-
+    } else {
+        LogSave(time2str() + "Bluetooth is not available on this device", Qt::blue);
     }
 }
-*/
 //-----------------------------------------------------------------------
 void MainWindow::bleScanError(QBluetoothDeviceDiscoveryAgent::Error er)
 {
@@ -1175,6 +1137,7 @@ void MainWindow::bleDiscoverFinished()
     QList<QBluetoothDeviceInfo>ls;
     ls.clear();
     */
+    st.clear();
     list.clear();
     list = discoveryAgent->discoveredDevices();
     discoveryAgent->disconnect();
@@ -1182,15 +1145,16 @@ void MainWindow::bleDiscoverFinished()
     if (!list.isEmpty()) {
         for (int i = 0; i < list.size(); i++) {
             //if (list.at(i).name().indexOf(bleRemoteMarker) != -1) {
-                st = "Device: " + list.at(i).name().trimmed() +
+                st += "Device: " + list.at(i).name().trimmed() +
                      " (" + list.at(i).address().toString().trimmed() +
-                     ") rssi: " + QString::number(list.at(i).rssi(), 10);
+                     ") rssi: " + QString::number(list.at(i).rssi(), 10) + "\n";
                 //ls.append(list.at(i));
-                LogSave(time2str() + st, Qt::blue);
             //}
         }
     } else {
         st = "No devices found";
+    }
+    if (st.length()) {
         LogSave(time2str() + st, Qt::blue);
     }
 
@@ -1199,7 +1163,6 @@ void MainWindow::bleDiscoverFinished()
         //list = ls;
         index = -1;
         emit sig_sqlGo();
-        //emit sig_bleGo();
     } else {
         emit sig_bleDone();
     }
@@ -1247,6 +1210,9 @@ void MainWindow::slot_bleTimeOut()
     QMessageBox::critical(this, "Error", st, QMessageBox::StandardButton::Ok);
 }
 //-----------------------------------------------------------------------
+//     Функция запускает процедуру "установить соединение"
+//           с выбранным устройством bluetooth
+//
 void MainWindow::getDevIndex(int ix)
 {
     if (ix < 0) return;
@@ -1261,7 +1227,7 @@ void MainWindow::getDevIndex(int ix)
     if (index >= 0) {
         bleFind = true;
         infoDev = rec_list.at(index);
-        bleAddr = (QBluetoothAddress)infoDev.addr;
+        bleAddr = static_cast<QBluetoothAddress>(infoDev.addr);// (QBluetoothAddress)infoDev.addr;
         bleDevNameAddr = QString(infoDev.name) + " (" + QString::number(infoDev.addr, 16) + ")";
         con_number = ix;
 
@@ -1271,12 +1237,13 @@ void MainWindow::getDevIndex(int ix)
     }
 }
 //-----------------------------------------------------------------------
+//       Функция формирует таблицу устройств из данных в списке
+//
 void MainWindow::mkSqlTable()
 {
     if (!rec_list.length()) return;
 
     if (tbl) {
-        tbl->hide();
         delete tbl;
         tbl = nullptr;
     }
@@ -1323,6 +1290,7 @@ void MainWindow::mkSqlTable()
             }
             ui->sql->minimumSize();
             tbl->minimumSize();
+            //
             connect(tbl->horizontalHeader(), SIGNAL(sectionClicked(int)), this, SLOT(colSort(int)));
             connect(tbl->verticalHeader(), SIGNAL(sectionClicked(int)), this, SLOT(tblContextMenu(int)));
             //
@@ -1331,6 +1299,8 @@ void MainWindow::mkSqlTable()
     }
 }
 //-----------------------------------------------------------------------
+//         Функция формирует контекстное меню для таблицы
+//
 void MainWindow::tblContextMenu(int row)//const QPoint& pos)
 {
         QRect rt = tbl->geometry();
@@ -1352,6 +1322,8 @@ void MainWindow::tblContextMenu(int row)//const QPoint& pos)
         }
 }
 //-----------------------------------------------------------------------
+// Слот запускает процедуру соединения с выбранным из таблицы устройством
+//
 void MainWindow::slotSelRecord()
 {
     int row = tbl->selectionModel()->currentIndex().row();
@@ -1370,12 +1342,15 @@ void MainWindow::slotSelRecord()
 #endif
 
     if (!ble_connect) {
-        emit sig_getDevIndex(num);//row);
+        emit sig_getDevIndex(num);
     } else {
         QMessageBox::warning(this, tr("Установить соединение"), tr("Соединение уже установлено c\n'") + ui->device->text() + "'", QMessageBox::Ok);
     }
 }
 //-----------------------------------------------------------------------
+//   Слот запускает процедуру удаление выбранной записи
+//            из таблицы и базы данных
+//
 void MainWindow::slotDelRecord()
 {
     int row = tbl->selectionModel()->currentIndex().row();
@@ -1391,7 +1366,10 @@ void MainWindow::slotDelRecord()
 
     if (ble_connect) {
         if (con_number == num) {
-            QMessageBox::warning(this, tr("Удаление записи"), tr("Удаление невозможною\nУстройство '") + ui->device->text() + "' занято !", QMessageBox::Ok);
+            QMessageBox::warning(this,
+                                 tr("Удаление записи"),
+                                 tr("Удаление невозможною\nУстройство '") + ui->device->text() + "' занято !",
+                                 QMessageBox::Ok);
             return;
         }
     }
@@ -1405,7 +1383,7 @@ void MainWindow::slotDelRecord()
         toStatusLine("Cancel delete record by index #" + snum, picWar);
 
 #ifdef SET_DEBUG
-    qDebug() << "Cancel delete record by index #" + snum;//QString::number(row + 1, 10) + " (num=" + QString::number(num, 10) + ")";
+    qDebug() << "Cancel delete record by index #" + snum;
 #endif
 
     } else {
@@ -1420,6 +1398,8 @@ void MainWindow::slotDelRecord()
     }
 }
 //-----------------------------------------------------------------------
+//      Функция выполняет соритровку данных по столбцу таблицы
+//
 void MainWindow::colSort(int c)
 {
     static Qt::SortOrder dir = Qt::SortOrder::AscendingOrder;
@@ -1430,6 +1410,10 @@ void MainWindow::colSort(int c)
         dir = Qt::SortOrder::AscendingOrder;
 }
 //-----------------------------------------------------------------------
+//      Функция заносит данные об устройствах bluetooth
+//         из списка в базу данных sqlite3, а также
+//            формирует таблицу из этих данных
+//
 void MainWindow::sqlGo()
 {
     //------------   Stop progress bar   ------------
