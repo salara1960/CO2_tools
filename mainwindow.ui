@@ -916,20 +916,20 @@ background-image: url(:/png/ips1.png);
     <item row="0" column="4">
      <widget class="QTableWidget" name="sql">
       <property name="sizePolicy">
-       <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+       <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
       </property>
       <property name="minimumSize">
        <size>
-        <width>310</width>
+        <width>330</width>
         <height>270</height>
        </size>
       </property>
       <property name="maximumSize">
        <size>
-        <width>800</width>
+        <width>500</width>
         <height>270</height>
        </size>
       </property>

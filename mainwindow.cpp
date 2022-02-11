@@ -123,7 +123,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(this, &MainWindow::sig_getDevIndex, this, &MainWindow::getDevIndex);
     connect(this, &MainWindow::sig_delRecDB, this, &MainWindow::delRecDB);
 
-    tmr_sql = startTimer(3000);// 3 msec.
+    tmr_sql = startTimer(2000);// 2 msec.
     if (tmr_sql <= 0) {
         MyError |= 2;//start_timer error
         throw TheError(MyError);
@@ -150,7 +150,11 @@ MainWindow::~MainWindow()
         bleSocket = nullptr;
     }
 
-    if (tmr_ble) {
+    if (tmr_sql > 0) {
+        killTimer(tmr_sql);
+        tmr_sql = 0;
+    }
+    if (tmr_ble > 0) {
         killTimer(tmr_ble);
         tmr_ble = 0;
     }
@@ -168,7 +172,7 @@ MainWindow::~MainWindow()
 
     if (conf) delete conf;
 
-    killTimer(tmr_sec);
+    if (tmr_sec > 0) killTimer(tmr_sec);
 
     delete ui;
 }
@@ -200,7 +204,7 @@ void MainWindow::timerEvent(QTimerEvent *event)
 #ifdef SET_BLUETOOTH
     else if (tmr_ble == event->timerId()) {
         if (tmr_ble > 0) emit sig_bleTimeOut();
-    } else if ((tmr_sql > 0) && (tmr_sql == event->timerId())) {
+    } else if (tmr_sql == event->timerId()) {
         emit sig_iniSql();
     }
 #endif
@@ -219,12 +223,15 @@ void MainWindow::resizeEvent(QResizeEvent *event)
     if (event->size() == minimumSize()) {
         if (tbl) {
             ui->sql->resize(minWinSql);
-            tbl->resize(minWinSql);
+            QSize z = ui->sql->size();
+            tbl->resize(z);
         }
     } else {
         if (tbl) {
             ui->sql->resize(maxWinSql);
-            tbl->resize(maxWinSql);
+            QSize z = ui->sql->size();
+            QSize sz = QSize(z.width() - 60, z.height() - 10);
+            tbl->resize(sz);
         }
     }
 }
@@ -1012,6 +1019,7 @@ void MainWindow::slot_bleStat(bool stat)
         ui->device->clear();
         ui->lab_device->clear();
         ui->lab_device->setToolTip("");
+        toStatusLine("Disconnected with device '" + bleDevNameAddr, picInfo);
 
         emit sig_bleDone();
     } else {
@@ -1019,6 +1027,7 @@ void MainWindow::slot_bleStat(bool stat)
         if ((index >= 0) && (rec_list.size())) {
             ui->device->setText(bleDevNameAddr);
             ui->lab_device->setToolTip("Connected to " + bleDevNameAddr);
+            toStatusLine("Connected with device '" + bleDevNameAddr, picInfo);
         }
     }
 }

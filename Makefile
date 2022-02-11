@@ -14,7 +14,7 @@ EQ            = =
 
 CC            = gcc
 CXX           = g++
-DEFINES       = -DVERSION_MAJOR=1 -DVERSION_MINOR=9 -DVERSION_BUILD=0 -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_BLUETOOTH_LIB -DQT_SQL_LIB -DQT_CORE_LIB
+DEFINES       = -DVERSION_MAJOR=1 -DVERSION_MINOR=9 -DVERSION_BUILD=1 -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_BLUETOOTH_LIB -DQT_SQL_LIB -DQT_CORE_LIB
 CFLAGS        = -pipe -O2 -Wall -Wextra -D_REENTRANT -fPIC $(DEFINES)
 CXXFLAGS      = -pipe -O2 -std=gnu++11 -Wall -Wextra -D_REENTRANT -fPIC $(DEFINES)
 INCPATH       = -I. -I. -I../../../Qt/5.15.2/gcc_64/include -I../../../Qt/5.15.2/gcc_64/include/QtWidgets -I../../../Qt/5.15.2/gcc_64/include/QtGui -I../../../Qt/5.15.2/gcc_64/include/QtSerialPort -I../../../Qt/5.15.2/gcc_64/include/QtBluetooth -I../../../Qt/5.15.2/gcc_64/include/QtSql -I../../../Qt/5.15.2/gcc_64/include/QtCore -I. -I/usr/include/libdrm -I. -I../../../Qt/5.15.2/gcc_64/mkspecs/linux-g++
@@ -36,8 +36,8 @@ DEL_DIR       = rmdir
 MOVE          = mv -f
 TAR           = tar -cf
 COMPRESS      = gzip -9f
-DISTNAME      = CO2_Tools1.9.0
-DISTDIR = /home/alarm/Project/Qt/co2_tools/.tmp/CO2_Tools1.9.0
+DISTNAME      = CO2_Tools1.9.1
+DISTDIR = /home/alarm/Project/Qt/co2_tools/.tmp/CO2_Tools1.9.1
 LINK          = g++
 LFLAGS        = -Wl,-O1 -Wl,-rpath,/home/alarm/Qt/5.15.2/gcc_64/lib -Wl,-rpath-link,/home/alarm/Qt/5.15.2/gcc_64/lib
 LIBS          = $(SUBLIBS) /home/alarm/Qt/5.15.2/gcc_64/lib/libQt5Widgets.so /home/alarm/Qt/5.15.2/gcc_64/lib/libQt5Gui.so /home/alarm/Qt/5.15.2/gcc_64/lib/libQt5SerialPort.so /home/alarm/Qt/5.15.2/gcc_64/lib/libQt5Bluetooth.so /home/alarm/Qt/5.15.2/gcc_64/lib/libQt5Sql.so /home/alarm/Qt/5.15.2/gcc_64/lib/libQt5Core.so -lGL -lpthread   

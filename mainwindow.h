@@ -268,7 +268,7 @@ signals:
 
 private:
     Ui::MainWindow *ui;
-    int tmr_sec, MyError;
+    int tmr_sec = 0, MyError;
     QSerialPort *sdev;
     QByteArray rxData;
     QString sdevName;
@@ -320,7 +320,7 @@ private:
     QString bleDevStr, bleAddrStr, bleDevNameAddr;
     QByteArray blePack;
     bool ble_connect = false;
-    int tmr_ble, tmr_rst;
+    int tmr_ble = 0, tmr_rst = 0;
     const int tmr_ble_wait = 10000;
     bool bleFind = false;
 
