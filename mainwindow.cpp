@@ -416,7 +416,6 @@ void MainWindow::on_connect()
         ui->crlfBox->setEnabled(true);
         ui->log->setEnabled(true);
 
-
         ui->actionPORT->setToolTip(tr("Параметры последовательного порта:\n%1 %2 %3%4%5")
                                    .arg(sdevName,
                                    conf->settings().stringBaudRate,
@@ -424,6 +423,7 @@ void MainWindow::on_connect()
                                    conf->settings().stringParity.at(0),
                                    conf->settings().stringStopBits));
 
+        ui->cmd->setText("get");
         on_answer();
 
     } else {
@@ -1297,8 +1297,8 @@ void MainWindow::mkSqlTable()
                 }
                 tbl->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
             }
-            ui->sql->minimumSize();
-            tbl->minimumSize();
+            //ui->sql->minimumSize();
+            //tbl->minimumSize();
             //
             connect(tbl->horizontalHeader(), SIGNAL(sectionClicked(int)), this, SLOT(colSort(int)));
             connect(tbl->verticalHeader(), SIGNAL(sectionClicked(int)), this, SLOT(tblContextMenu(int)));
